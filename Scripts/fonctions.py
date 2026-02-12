@@ -34,4 +34,12 @@ class eq :
         return 'toto'
     def Gamma(diametre, alpha, lanbda, nu) :
         return (alpha/gamma(diametre))*(lanbda**(alpha*nu))*(diametre**(alpha*(nu-1)))*exp(-((lanbda*diametre)**alpha))
-
+    def G(p, nu, alpha) :
+        return (gamma(nu+p/alpha)/gamma(nu))
+    def Landa(rho, r, a, N, b, nu, alpha):
+        return (((rho*r)/(a*N*eq.G(b)))**(-1/b))
+    def Masse(diametre, a, b):
+        return (a*(diametre**b))
+    def Vitesse(diametre, c, d):
+        return(c*(diametre**d))
+    
