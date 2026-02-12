@@ -26,4 +26,12 @@ class InitialCond :
 
 initial_conds = InitialCond(nb_grid = 50)
 print (initial_conds.grid())
+from math import *
+import time
+class eq :
+    def test() :
+        return 'toto'
+    def Gamma(diamètre) :
+        return gamma(x)
+
 
