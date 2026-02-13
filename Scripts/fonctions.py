@@ -4,14 +4,12 @@
 
 ### Imports nécessaires ###
 
+from math import *
+import time
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 ### Définitions des classes/fonctions ###
-
-class Equation :
-    def test() :
-        return 'toto'
 
 class InitialCond :
     def __init__(self, nb_grid) :
@@ -21,58 +19,70 @@ class InitialCond :
             height_grid = 12e3
             self.vertical_grid = np.linspace(1/nb_grid * height_grid, height_grid, nb_grid)
 
-    def grid () : 
+    def grid (self) : 
         return self.vertical_grid
 
 initial_conds = InitialCond(nb_grid = 50)
 print (initial_conds.grid())
-from math import *
-import time
-import numpy as np
-import matplotlib.pyplot as plt
+
 class eq :
-    def test() :
-        return 'toto'
-    def Gamma(diametre, alpha, lanbda, nu) :
-        return (alpha/gamma(diametre))*(lanbda**(alpha*nu))*(diametre**(alpha*(nu-1)))*exp(-((lanbda*diametre)**alpha))
 
-param1=1
-param2=1
-param3=1
+    def __init__(self,esp):
+        if esp=="i":
+            self.a=0.82
+            self.b=2.5
+            self.c=800
+            self.d=1
+            self.alpha=3
+            self.nu=3
+        if esp=='s':
+            self.a=0.02
+            self.b=1.9
+            self.c=5.1
+            self.d=0.27
+            self.alpha=1
+            self.nu=1
+        if esp=='g':
+            self.a=19.6
+            self.b=2.8
+            self.c=124
+            self.d=0.66
+            self.alpha=1
+            self.nu=1
+        if esp=='r':
+            self.a=524
+            self.b=3
+            self.c=842
+            self.d=0.66
+            self.alpha=1
+            self.nu=1
+        if esp=='c':
+            self.a=524
+            self.b=3
+            self.c=3.2e7
+            self.d=2
+            self.alpha=1
+            self.nu=3         
+
+    def Gamma(self, diametre, lanbda) :
+        return (self.alpha/gamma(diametre))*(lanbda**(self.alpha*self.nu))*(diametre**(self.alpha*(self.nu-1)))*np.exp(-((lanbda*diametre)**self.alpha))
+   
+    def G(self, p) :
+        return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
+    
+    def Lanbda(self, rho_r, N):
+        return (((rho_r)/(self.a*N*self.G(self.b)))**(-1/self.b))
+    
+    def Masse(self, diametre):
+        return (self.a*(diametre**self.b))
+    
+    def Vitesse(self,diametre):
+        return(self.c*(diametre**self.d))
+    
+    def Calcul_rho_r(m, n):
+        rho_r=0
+        for i in range(len(m)):
+            rho_r+=m[i]*n[i]
+        return rho_r
 
 
-
-a=np.linspace(1, 20, 100)
-b=[]
-for i in range(100):
-    b.append(eq.Gamma(a[i], param1, param2, param3))
-
-
-plt.plot(a, b, '--', color='r')
-
-
-param1=1
-param2=1
-param3=1.2
-
-a=np.linspace(1, 20, 100)
-b=[]
-for i in range(100):
-    b.append(eq.Gamma(a[i], param1, param2, param3))
-
-
-plt.plot(a, b, '--', color='b')
-
-
-param1=5
-param2=0.5
-param3=5
-
-a=np.linspace(1, 20, 100)
-b=[]
-for i in range(100):
-    b.append(eq.Gamma(a[i], param1, param2, param3))
-
-
-plt.plot(a, b, '--', color='y')
-plt.show()
