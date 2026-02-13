@@ -29,7 +29,6 @@ initial_conds = InitialCond(nb_grid = 50)
 print (initial_conds.grid())
 
 class eq :
-
     def __init__(self,esp):
         if esp=="i":
             self.a=0.82
@@ -68,7 +67,7 @@ class eq :
             self.nu=3         
 
     def Gamma(self, diametre, lanbda) :
-        return (self.alpha/gamma(diametre))*(lanbda**(self.alpha*self.nu))*(diametre**(self.alpha*(self.nu-1)))*np.exp(-((lanbda*diametre)**self.alpha))
+        return (self.alpha/gamma(self.nu))*(lanbda**(self.alpha*self.nu))*(diametre**(self.alpha*(self.nu-1)))*np.exp(-((lanbda*diametre)**self.alpha))
    
     def G(self, p) :
         return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
@@ -82,8 +81,5 @@ class eq :
     def Vitesse(self,diametre):
         return(self.c*(diametre**self.d))
     
-    def Calcul_rho_r(m, n):
-        rho_r=0
-        for i in range(len(m)):
-            rho_r+=m[i]*n[i]
-        return rho_r
+    def Calcul_rho_r(self, m, n):
+        return np.dot(m,n)
