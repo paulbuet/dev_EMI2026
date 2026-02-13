@@ -88,7 +88,7 @@ print(model,type_advance,number_stitches,deformable)
 
 if model == 'Box_Lagrangien':
 
-    # On appelle le code qui gère le modèle Box-Lagrangien en l'initialisant vec les paramètres rentré par l'utilisateur
+    # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
     model_config = Model(type_advance,number_stitches,deformable)
 
