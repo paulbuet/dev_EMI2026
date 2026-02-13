@@ -12,7 +12,7 @@ import xarray as xr
 
 ### Définitions des classes/fonctions ###
 
-class eq :
+class Eq :
 
     def __init__(self,esp):
         if esp=="i":
