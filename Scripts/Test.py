@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 from scipy.optimize import brentq
 
+
+
 class eq :
     def __init__(self,esp):
         if esp=="i":
@@ -92,7 +94,21 @@ class eq :
         return Result
     
 
+def affichage(Concentration, Precip_horaires):
+    Temps_simu=len(Concentration)
+    nb_boites=len(Concentration[0])
+    #time=np.linspace(1, Temps_simu, Temps_simu)
+    Concentration=np.array(Concentration)
+    Transpose=Concentration.T
+    print(Temps_simu, nb_boites)
+    plt.figure(figsize=(Temps_simu, nb_boites))
+    plt.pcolormesh(Transpose,cmap='binary')
+    plt.show()
 
+
+Concentration=[[3, 2, 3, 5], [6, 7, 2, 8], [1, 8, 1, 1], [1, 5, 2, 6], [1, 4, 7, 6], [1, 4, 3, 5], [1, 5, 2, 7]]
+Precip=3
+affichage(Concentration, Precip)
 
 
 
