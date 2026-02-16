@@ -2,6 +2,7 @@ from math import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
+from scipy.optimize import brentq
 
 class eq :
     def __init__(self,esp):
@@ -41,8 +42,8 @@ class eq :
             self.alpha=1
             self.nu=3         
 
-    def Gamma(self, diametre, lanbda) :
-        return (self.alpha/gamma(self.nu))*(lanbda**(self.alpha*self.nu))*(diametre**(self.alpha*(self.nu-1)))*np.exp(-((lanbda*diametre)**self.alpha))
+    def Gamma(self, diametre, lam) :
+        return (self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha))
    
     def G(self, p) :
         return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
@@ -58,27 +59,65 @@ class eq :
     
     def Calcul_rho_r(self, m, n):
         return np.dot(m,n)
+    
+    def Dmin_Dmax(self, lam):
+
+ 
+        # fonction de répartition
+        def F(D):
+            return quad(self.Gamma, 0, D, args=(lam))[0]
+ 
+        # équations à résoudre
+        def f_min(D):
+            return F(D) - 0.01
+ 
+        def f_max(D):
+            return F(D) - 0.99
+ 
+        Dmin = brentq(f_min, 0, 500)
+        Dmax = brentq(f_max, 0, 500)
+ 
+        return Dmin, Dmax
+    
+    def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
+        Result=[]
+        Intervalle=(Dmax-Dmin)/nb_classes
+        for i in range(nb_classes):
+            Di=(1+2*i)*Intervalle/2 + Dmin
+            
+            P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            print(i, P_i)
+            Ni=N*P_i
+            Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
+        return Result
+    
 
 
-eq_rain = eq("r")
 
-n_rain = np.linspace(10, 10, 100)
-D_rain = np.linspace(0.001, 0.1, 100)
-m_rain = eq_rain.Masse(D_rain)
-N=sum(n_rain)
-print(N)
 
-rho_r = 1
-lanbda = eq_rain.Lanbda(rho_r,N)
 
-def integrand(D):
-    return eq_rain.Gamma(D, lanbda)
+eq_rain = eq("i")
 
-result, error = quad (integrand, 0, 100)
-print('résultat : ', result)
+lam=5
+N=1000
 
-#a=quad(eq_rain.Gamma, 0, 50, args=(lanbda))
-#print(a)
+Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]
+print("Intégrale entre 0 et 500 : ", Pi)
+dmin, dmax = eq_rain.Dmin_Dmax(lam)
+print("Integrale entre 0 et Dmax : ", quad(eq_rain.Gamma, 0, dmax, args=(lam))[0])
+print("Integrale entre Dmin et 500 : ", quad(eq_rain.Gamma, dmin, 500, args=(lam))[0])
+print("Integrale entre Dmin et Dmax : ", quad(eq_rain.Gamma, dmin, dmax, args=(lam))[0])
+
+
+Resultat=eq_rain.Classe_D(6, dmin, dmax, N, lam)
+print("Pour la grèle, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
+somme=0
+for i in range(6):
+    somme+=Resultat[i][1]
+print("Le résultat de la somme totale des particules est : ", somme)
+
+
+
 
 
 
