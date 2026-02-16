@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Météo France (2025-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 # On utilisera dans la description du Box-Lagrangien les notations de Kato(1995)
 
