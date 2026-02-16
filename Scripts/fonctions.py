@@ -19,6 +19,7 @@ from scipy.integrate import quad
 from scipy.optimize import brentq
 from collections import deque
 
+
 ### Classes and functions definition ###
 
 class Eq :
@@ -105,7 +106,8 @@ class Eq :
             P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
             print(i, P_i)
             Ni=N*P_i
-            Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
+            Mi=Ni*self.Masse(Di)
+            Result.append([Di, Ni, Mi]) #Liste de troid paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule, Masse totale des Ni particules.
         return Result
     
 
