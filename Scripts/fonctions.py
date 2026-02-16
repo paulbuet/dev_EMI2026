@@ -15,6 +15,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+import time
 
 ### Définitions des classes/fonctions ###
 
@@ -106,7 +107,19 @@ class InitialCond :
         data_vars = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(bin_concentration))}
         self.data = xr.Dataset(data_vars=data_vars, coords = {"level" : self.vertical_levels_grid})
 
+start = time.time()
 initial_conds = InitialCond(nb_grid = 50, bin_concentration = [1,2,3,4,5])
+stop = time.time()
+print (stop - start)
+start = time.time()
 print (initial_conds.vertical_levels_grid)
+stop = time.time()
+print (stop - start)
+start = time.time()
 print (initial_conds.data)
+stop = time.time()
+print (stop - start)
+start = time.time()
 print (initial_conds.data["concentration_bin_1"])
+stop = time.time()
+print (stop - start)
