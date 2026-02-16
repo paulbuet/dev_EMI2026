@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Météo France (2025-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
+
 # Le but de ce fichier est de mettre toutes les fonctions qu'on peut potentiellement appelés pour faire tourner nos futur codes
 # Ensuite il suffira de faire un appelle du fichier et de la fonction qu nous interesse
 # Exemple avec cette fonction test que j'appelle dans le code Sedimentation.py
@@ -97,10 +103,10 @@ class InitialCond :
             concentration_profile [area_init[0],area_init[1]] = [1 for i in range(len[area_init])]
 
         bin_profile = [np.array(concentration_profile) * bin_concentration[i] for i in range(len(bin_concentration))]
-        data_vars = {f"concentration_bin{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(bin_concentration))}
+        data_vars = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(bin_concentration))}
         self.data = xr.Dataset(data_vars=data_vars, coords = {"level" : self.vertical_levels_grid})
 
 initial_conds = InitialCond(nb_grid = 50, bin_concentration = [1,2,3,4,5])
 print (initial_conds.vertical_levels_grid)
 print (initial_conds.data)
-print (initial_conds.data["concentration_bin1"])
+print (initial_conds.data["concentration_bin_1"])

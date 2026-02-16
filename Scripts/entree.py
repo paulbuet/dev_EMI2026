@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Météo France (2025-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 # We import the necessary libraries as well as the various models.
 import time
