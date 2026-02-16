@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Météo France (2025-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 # We import the necessary libraries as well as the various models.
 import time
@@ -88,7 +93,7 @@ print(model,type_advance,number_stitches,deformable)
 
 if model == 'Box_Lagrangien':
 
-    # On appelle le code qui gère le modèle Box-Lagrangien en l'initialisant vec les paramètres rentré par l'utilisateur
+    # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
     model_config = Model(type_advance,number_stitches,deformable)
 
