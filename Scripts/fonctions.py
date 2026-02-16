@@ -9,6 +9,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+from scipy.integrate import quad
+from scipy.optimize import brentq
 
 ### Définitions des classes/fonctions ###
 
