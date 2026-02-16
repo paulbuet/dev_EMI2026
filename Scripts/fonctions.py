@@ -116,9 +116,13 @@ class InitialCond :
 
 ### Tests and verifications ###
 
+start = time.time()
 initial_conds = InitialCond(nb_grid = 50, bin_concentration = [1,2,3,4,5])
 
 print (initial_conds.levels_boundaries)
 print (initial_conds.data)
+stop = time.time()
+print (stop - start)
+start = time.time()
 print (initial_conds.data["concentration_bin_1"])
 print (initial_conds.data["level"])
