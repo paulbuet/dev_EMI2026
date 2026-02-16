@@ -19,7 +19,6 @@ from scipy.integrate import quad
 from scipy.optimize import brentq
 from collections import deque
 
-
 ### Classes and functions definition ###
 
 class Eq :
@@ -106,8 +105,7 @@ class Eq :
             P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
             print(i, P_i)
             Ni=N*P_i
-            Mi=Ni*self.Masse(Di)
-            Result.append([Di, Ni, Mi]) #Liste de troid paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule, Masse totale des Ni particules.
+            Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
 
@@ -149,8 +147,10 @@ class InitialCond :
             concentration_profile [-1] = 1
         if mode == "gauss" :
             concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_grid)]
-        eq.
+
+        eq=Eq(esp)
         bin_concentration = Classe_D
+        
         bin_profile = [np.array(concentration_profile) * bin_concentration[i] for i in range(len(bin_concentration))]
         data_vars = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(bin_concentration))}
         self.data = xr.Dataset(data_vars=data_vars, coords = {"level" : self.grid})
