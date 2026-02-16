@@ -58,8 +58,8 @@ class eq :
             self.alpha=1
             self.nu=3         
 
-    def Gamma(self, diametre, lanbda) :
-        return (self.alpha/gamma(self.nu))*(lanbda**(self.alpha*self.nu))*(diametre**(self.alpha*(self.nu-1)))*np.exp(-((lanbda*diametre)**self.alpha))
+    def Gamma(self, diametre, lam) :
+        return (self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha))
    
     def G(self, p) :
         return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
@@ -72,9 +72,43 @@ class eq :
     
     def Vitesse(self,diametre):
         return(self.c*(diametre**self.d))
-        
+    
     def Calcul_rho_r(self, m, n):
         return np.dot(m,n)
+    
+    def Dmin_Dmax(self, lam):
+
+ 
+        # fonction de répartition
+        def F(D):
+            return quad(self.Gamma, 0, D, args=(lam))[0]
+ 
+        # équations à résoudre
+        def f_min(D):
+            return F(D) - 0.01
+ 
+        def f_max(D):
+            return F(D) - 0.99
+ 
+        Dmin = brentq(f_min, 0, 500)
+        Dmax = brentq(f_max, 0, 500)
+ 
+        return Dmin, Dmax
+    
+    def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
+        Result=[]
+        Intervalle=(Dmax-Dmin)/nb_classes
+        for i in range(nb_classes):
+            Di=(1+2*i)*Intervalle/2 + Dmin
+            
+            P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            print(i, P_i)
+            Ni=N*P_i
+            Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
+        return Result
+    
+
+
 
 class InitialCond :
     '''
