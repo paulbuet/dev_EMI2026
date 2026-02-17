@@ -109,5 +109,5 @@ if model == 'Box_Lagrangien':
     profil = model_config.run()
     concentration_formate = np.array(profil[0]).sum(axis=1)
 
-    Affichage.Affichage_Concentration(concentration_formate)
+    Affichage.Affichage_Concentration(concentration_formate, "concentration")
     Affichage.Affichage_Precipitation(profil[1])
