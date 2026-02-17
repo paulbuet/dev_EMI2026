@@ -1,8 +1,13 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Météo France (2025-)
+# This software is governed by the CeCILL-C license under French law.
+# http://www.cecill.info
 
 # We import the necessary libraries as well as the various models.
 import time
 import argparse
-from box_lagrangien import Model
+from box_lagrangien import Model_bl
 
 
 
@@ -32,7 +37,7 @@ def check_advance(advance):
 
 def check_numb(number):
     """
-    function that takes as input the number of stitches given by the user, checks its compliance, and returns an appropriate response
+    function that takes as input the number of stitches or bins given by the user, checks its compliance, and returns an appropriate response
     nothing if compliant, 
     error message otherwise
     """
@@ -72,24 +77,27 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-m','--model', help = "Choose between Box_Lagrangien and Semi_Lagrangien Scheme.", default = "Box_Lagrangien", type=check_model)
 parser.add_argument('-s','--type_advance',help="Choose between Step_Forward and Step_By_Step", default="Step_By_Step",type=check_advance)
-parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 3 , type=check_numb)
+parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 10 , type=check_numb)
 parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (deformable or not)", default='No', type=check_deformable)
+parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default='2', type=check_numb)
 
 model = parser.parse_args().model
 type_advance = parser.parse_args().type_advance
 number_stitches = parser.parse_args().number_stitches
 deformable = parser.parse_args().deformable
-
+number_bin = parser.parse_args().number_bin
 
 
 # We print its choices
 
-print(model,type_advance,number_stitches,deformable)
+print(model,type_advance,number_stitches,deformable,number_bin)
 
 if model == 'Box_Lagrangien':
 
     # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
-    model_config = Model(type_advance,number_stitches,deformable)
+    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin)
 
     profil = model_config.run()
+
+    print(profil)
