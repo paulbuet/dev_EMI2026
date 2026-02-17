@@ -59,7 +59,7 @@ class Model_bl():
    
         self.grid0 = condi_init.data
 
-        self.vertical_boundaries = condi_init.vertical_boundaries
+        self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
 
