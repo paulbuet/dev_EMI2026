@@ -114,7 +114,12 @@ class Affichage :
         Transpose=Concentration.T
         print(Temps_simu, nb_boites)
         plt.figure(figsize=(Temps_simu, nb_boites))
-        plt.pcolormesh(Transpose,cmap='binary')
+        orig_map=plt.cm.get_cmap('gist_ncar')
+        reversed_map = orig_map.reversed()
+
+
+        plt.pcolormesh(Transpose,cmap=reversed_map)
+        plt.colorbar()
         plt.show()
 
     def Affichage_Precipitation(Precip):
@@ -134,6 +139,7 @@ class Affichage :
         plt.plot(time, Cumul, '--', color="red")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         plt.show()
+
 
 
 
@@ -190,12 +196,12 @@ class InitialCond :
         eq=Eq(esp)
         lam = eq.Lanbda (rho_r, N)
         dmin, dmax = eq.Dmin_Dmax(lam)
-        bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
+        self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
         
-        bin_profile = [np.array(concentration_profile) * bin_concentration[i][1] for i in range(len(bin_concentration))] # computinng of the n bin profiles
-        data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(bin_concentration))}
+        bin_profile = [np.array(concentration_profile) * self.bin_concentration[i][1] for i in range(len(self.bin_concentration))] # computinng of the n bin profiles
+        data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(self.bin_concentration))}
         
-        data_vars2 = {f"diameter_bin_{ind_bin+1}" : bin_concentration[ind_bin][0] for ind_bin in range(len(bin_concentration))} # addition of the diameters
+        data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.bin_concentration[ind_bin][0] for ind_bin in range(len(self.bin_concentration))} # addition of the diameters
         data_vars1.update(data_vars2)
 
         self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
