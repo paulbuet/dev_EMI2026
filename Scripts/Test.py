@@ -63,24 +63,23 @@ class eq :
         return np.dot(m,n)
     
     def Dmin_Dmax(self, lam):
-
  
-        # fonction de répartition
         def F(D):
             return quad(self.Gamma, 0, D, args=(lam))[0]
  
-        # équations à résoudre
-        def f_min(D):
-            return F(D) - 0.01
- 
-        def f_max(D):
-            return F(D) - 0.99
- 
-        Dmin = brentq(f_min, 0, 500)
-        Dmax = brentq(f_max, 0, 500)
+        D_high = 1.0 / lam # échelle naturelle
+        while F(D_high) < 0.999:
+            D_high *= 2
+
+        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
  
         return Dmin, Dmax
-    
+
+
+
+
+
     def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
         Result=[]
         Intervalle=(Dmax-Dmin)/nb_classes
@@ -93,29 +92,48 @@ class eq :
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
+class Affichage :
 
-def affichage(Concentration, Precip_horaires):
-    Temps_simu=len(Concentration)
-    nb_boites=len(Concentration[0])
-    #time=np.linspace(1, Temps_simu, Temps_simu)
-    Concentration=np.array(Concentration)
-    Transpose=Concentration.T
-    print(Temps_simu, nb_boites)
-    plt.figure(figsize=(Temps_simu, nb_boites))
-    plt.pcolormesh(Transpose,cmap='binary')
-    plt.show()
+    def Affichage_Concentration(Concentration):
+        Temps_simu=len(Concentration)
+        nb_boites=len(Concentration[0])
+        #time=np.linspace(1, Temps_simu, Temps_simu)
+        Concentration=np.array(Concentration)
+        Transpose=Concentration.T
+        print(Temps_simu, nb_boites)
+        plt.figure(figsize=(Temps_simu, nb_boites))
+        plt.pcolormesh(Transpose,cmap='binary')
+        plt.show()
+
+    def Affichage_Precipitation(Precip):
+        Precip=np.array(Precip)
+        liste=np.zeros(len(Precip))
+        Cumul=[]
+        for i in range(len(Precip)):
+            liste[i]=1
+            Cumul.append(np.dot(Precip, liste))
+        plt.figure(figsize=(10, 10))
+        time=np.linspace(1, len(Precip), len(Precip))
+        time2 = time -(time[1]-time[0])/2
+        plt.bar(time2, Precip, color="blue")
+        plt.plot(time, Cumul, '--', color="red")
+        plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
+        plt.show()
+
+    
 
 
-Concentration=[[3, 2, 3, 5], [6, 7, 2, 8], [1, 8, 1, 1], [1, 5, 2, 6], [1, 4, 7, 6], [1, 4, 3, 5], [1, 5, 2, 7]]
-Precip=3
-affichage(Concentration, Precip)
+Concentration=[[3, 2, 3, 5], [6, 7, 2, 28], [1, 8, 1, 1], [1, 5, 2, 6], [1, 4, 7, 6], [1, 4, 3, 5], [1, 5, 2, 7]]
+Precip=[0, 0, 0, 0, 1, 1, 2, 3, 9, 2, 1, 1, 1, 0, 0]
+
+Affichage_Concentration(Concentration)
+Affichage_Precipitation(Precip)
 
 
+eq_rain = eq("c")
 
-eq_rain = eq("i")
-
-lam=5
-N=1000
+lam=0.00001
+N=151515
 
 Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]
 print("Intégrale entre 0 et 500 : ", Pi)
@@ -125,10 +143,10 @@ print("Integrale entre Dmin et 500 : ", quad(eq_rain.Gamma, dmin, 500, args=(lam
 print("Integrale entre Dmin et Dmax : ", quad(eq_rain.Gamma, dmin, dmax, args=(lam))[0])
 
 
-Resultat=eq_rain.Classe_D(6, dmin, dmax, N, lam)
+Resultat=eq_rain.Classe_D(10, dmin, dmax, N, lam)
 print("Pour la grèle, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
 somme=0
-for i in range(6):
+for i in range(10):
     somme+=Resultat[i][1]
 print("Le résultat de la somme totale des particules est : ", somme)
 
