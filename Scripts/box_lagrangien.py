@@ -17,7 +17,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max):
+   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max,esp):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -38,7 +38,7 @@ class Model_bl():
         self.nb_step = self.length_sim // self.delta_t  # number of time step
 
         self.nb_diam = number_bin # number of type of diameter
-        self.esp ='i'
+        self.esp = esp
    
         # Ajouter le calcul des différents diamètres dans une liste self.diameter
 
@@ -59,6 +59,8 @@ class Model_bl():
    
         self.grid0 = condi_init.data
 
+        self.vertical_boundaries = condi_init.levels_boundaries
+
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
 
         # Initialisation of variables
@@ -72,7 +74,7 @@ class Model_bl():
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
-   
+        self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
@@ -82,8 +84,6 @@ class Model_bl():
         """
 
         shift = -V * dt   # On calcule le futur mouvement verticale
-
-
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
@@ -108,7 +108,7 @@ class Model_bl():
         nb_stitche_create  += 1   # We add 1 to the number of stitch created to see if we need an other one
 
 
-        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are obove the maximum level, we stop
+        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are above the maximum level, we stop
 
             z_mid_last_i = new_grid["level"].values[-1]  # New evaluation of the height of the highest center of stitch
 
@@ -140,12 +140,13 @@ class Model_bl():
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
             list_data_bin = []
+            list_mass_bin = []
             wat_flo_tot=[]
 
 
             for diam in range(1,self.nb_diam+1):  
 
-                # speed is calculate
+                # speed is calculated
 
                 speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
 
@@ -155,7 +156,7 @@ class Model_bl():
 
                     speed = self.speed_max
 
-                # Sedimentation is process
+                # Sedimentation is processed
 
                 new_grid = self.advect_down(grid_t,speed,self.delta_t)
 
@@ -179,18 +180,19 @@ class Model_bl():
 
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
+                list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
 
-                
+            self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
 
 
             
-        return self.list_data,self.wat_flo_on_time
+        return self.list_data,self.wat_flo_on_time,self.list_mass
 
 
 

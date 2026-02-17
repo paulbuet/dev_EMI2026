@@ -60,6 +60,16 @@ def check_deformable(answer):
     if answer not in ['Yes','No']:
         raise argparse.ArgumentTypeError(f"You have to answer by Yes or No for deformability.")
 
+def check_specie(specie):
+    """
+    function that takes as input the type of advancement given by the user, checks its compliance, and returns an appropriate response
+    nothing if compliant, 
+    error message otherwise
+    """
+    accepted_species = ['i', 's', 'g', 'r','c']
+    if specie not in accepted_species:
+        raise argparse.ArgumentTypeError(f"{specie} is not an accepted specie, {accepted_species} are.")
+    return specie
 
 
 
@@ -85,6 +95,7 @@ parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the 
 parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
 parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
+parser.add_argument('-e','--specie', help = "Pick an hydrometeor specie, accepted species are 'i', 's', 'g', 'r' or 'c'", default="r", type=check_specie)
 
 model = parser.parse_args().model
 type_advance = parser.parse_args().type_advance
@@ -94,6 +105,7 @@ number_bin = parser.parse_args().number_bin
 number_particules = parser.parse_args().number_particules
 time_step = parser.parse_args().time_step
 speed_max = parser.parse_args().speed_max
+esp = parser.parse_args().specie
 
 
 # We print its choices
@@ -104,10 +116,12 @@ if model == 'Box_Lagrangien':
 
     # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
-    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max)
+    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp)
 
     profil = model_config.run()
     concentration_formate = np.array(profil[0]).sum(axis=1)
 
+    mass_form = np.array(profil[2]).sum(axis=1)
     Affichage.Affichage_Concentration(concentration_formate, "concentration")
+    Affichage.Affichage_Concentration(mass_form, "masse")
     Affichage.Affichage_Precipitation(profil[1])
