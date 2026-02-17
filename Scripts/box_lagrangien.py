@@ -13,11 +13,11 @@ import xarray_regrid
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
-from fonctions import eq
+from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, type_advance,number_stitches,deformable,number_bin):
+   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -27,15 +27,16 @@ class Model_bl():
         self.number_stitches = number_stitches
         self.deformable = deformable
 
-        self.length_sim = 48  # length of simulation in seconds
+        N = number_particules
 
-        self.speed_max = 6  # max of speed in m/s
+        self.length_sim = 200  # length of simulation in seconds
 
-        self.delta_t = 1 # length of time step in seconds
+        self.speed_max = speed_max  # max of speed in m/s
+
+        self.delta_t = delta_t # length of time step in seconds
 
         self.nb_step = self.length_sim // self.delta_t  # number of time step
 
-        self.size_diam = [0.3,0.6,1]
         self.nb_diam = number_bin # number of type of diameter
         self.esp ='i'
    
@@ -54,9 +55,11 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,bin_concentration = [1,2,3])
+        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N)
    
         self.grid0 = condi_init.data
+
+        self.size_diam = np.array(condi_init.bin_concentration)[:,0]
 
         # Initialisation of variables
 
@@ -71,7 +74,7 @@ class Model_bl():
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
    
    def mass(self,grid,var, diam):
-       return sum(grid[var].values)*eq(self.esp).Masse(self.size_diam[diam-1])
+       return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
    def advect_down(self,ds, V, dt):
         """
@@ -79,6 +82,8 @@ class Model_bl():
         """
 
         shift = -V * dt   # On calcule le futur mouvement verticale
+
+
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
@@ -142,7 +147,13 @@ class Model_bl():
 
                 # speed is calculate
 
-                speed = eq(self.esp).Vitesse(self.size_diam[diam-1])
+                speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
+
+
+
+                if speed> self.speed_max:
+
+                    speed = self.speed_max
 
                 # Sedimentation is process
 
