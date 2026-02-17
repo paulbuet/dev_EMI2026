@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 from scipy.optimize import brentq
-
+from matplotlib.ticker import MultipleLocator
 
 
 class eq :
@@ -76,10 +76,6 @@ class eq :
  
         return Dmin, Dmax
 
-
-
-
-
     def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
         Result=[]
         Intervalle=(Dmax-Dmin)/nb_classes
@@ -113,6 +109,9 @@ class Affichage :
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
         plt.figure(figsize=(10, 10))
+        ax = plt.gca()
+        ax.xaxis.set_major_locator(MultipleLocator(1))
+        ax.yaxis.set_major_locator(MultipleLocator(1))
         time=np.linspace(1, len(Precip), len(Precip))
         time2 = time -(time[1]-time[0])/2
         plt.bar(time2, Precip, color="blue")
@@ -126,8 +125,8 @@ class Affichage :
 Concentration=[[3, 2, 3, 5], [6, 7, 2, 28], [1, 8, 1, 1], [1, 5, 2, 6], [1, 4, 7, 6], [1, 4, 3, 5], [1, 5, 2, 7]]
 Precip=[0, 0, 0, 0, 1, 1, 2, 3, 9, 2, 1, 1, 1, 0, 0]
 
-Affichage_Concentration(Concentration)
-Affichage_Precipitation(Precip)
+Affichage.Affichage_Concentration(Concentration)
+Affichage.Affichage_Precipitation(Precip)
 
 
 eq_rain = eq("c")
