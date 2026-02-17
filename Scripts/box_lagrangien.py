@@ -74,7 +74,7 @@ class Model_bl():
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
-   
+        self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
@@ -140,6 +140,7 @@ class Model_bl():
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
             list_data_bin = []
+            list_mass_bin = []
             wat_flo_tot=[]
 
 
@@ -179,18 +180,19 @@ class Model_bl():
 
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
+                list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
 
-                
+            self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
 
 
             
-        return self.list_data,self.wat_flo_on_time
+        return self.list_data,self.wat_flo_on_time,self.list_mass
 
 
 
