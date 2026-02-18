@@ -118,7 +118,7 @@ if model == 'Box_Lagrangien':
 
     # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
-    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp)
+    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL)
 
     profil = model_config.run()
     concentration_formate = np.array(profil[0]).sum(axis=1)
