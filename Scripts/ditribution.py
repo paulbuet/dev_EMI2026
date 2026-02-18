@@ -17,8 +17,8 @@ class distribution:
                     concentration_formate = np.array(profil[0]).sum(axis=1)
 
                     mass_form = np.array(profil[2]).sum(axis=1)
-                    Affichage.Affichage_Concentration(concentration_formate, "concentration")
-                    Affichage.Affichage_Concentration(mass_form, "masse")
+                    Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
+                    Affichage.Affichage_Concentration(mass_form, "masse", model)
                     Affichage.Affichage_Precipitation(profil[1])
             else:
                 if deformable == None:
@@ -28,6 +28,6 @@ class distribution:
                     concentration_formate = np.array(profil[0]).sum(axis=1)
 
                     mass_form = np.array(profil[2]).sum(axis=1)
-                    Affichage.Affichage_Concentration(concentration_formate, "concentration")
-                    Affichage.Affichage_Concentration(mass_form, "masse")
-                    Affichage.Affichage_Precipitation(profil[1])
+                    Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
+                    Affichage.Affichage_Concentration(mass_form, "masse", model)
+                    Affichage.Affichage_Precipitation(profil[1], model)

@@ -107,13 +107,14 @@ class Eq :
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         #time=np.linspace(1, Temps_simu, Temps_simu)
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        print(Temps_simu, nb_boites)
+        #print(Temps_simu, nb_boites)
+
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
@@ -122,16 +123,18 @@ class Affichage :
         plt.xlabel("Temps")
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
-        plt.savefig(f"fig/{typ}.png")
+        plt.savefig(f"./fig/{model}/{typ}.png")
         plt.show()
 
-    def Affichage_Precipitation(Precip):
+    def Affichage_Precipitation(Precip, model):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
+
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
+        print(np.dot(Precip, liste))
         fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
@@ -149,7 +152,7 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig("results/Précipitations.png")
+        plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.show()
 
 
