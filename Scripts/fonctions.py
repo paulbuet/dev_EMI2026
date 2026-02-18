@@ -100,7 +100,7 @@ class Eq :
             Di=(1+2*i)*Intervalle/2 + Dmin
             
             P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
-            print(i, P_i)
+            #print(i, P_i)
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
@@ -108,13 +108,13 @@ class Eq :
 class Affichage :
 
     def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         #time=np.linspace(1, Temps_simu, Temps_simu)
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
         #print(Temps_simu, nb_boites)
-
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
@@ -124,8 +124,10 @@ class Affichage :
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
         plt.savefig(f"./fig/{model}/{typ}.png")
+        plt.savefig(f"./fig/{model}/{typ}.png")
         plt.show()
 
+    def Affichage_Precipitation(Precip, model):
     def Affichage_Precipitation(Precip, model):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
@@ -152,6 +154,7 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
+        plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.show()
 

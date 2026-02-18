@@ -58,7 +58,7 @@ class Model_bl_sf():
         self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
-        print(self.size_diam)
+
 
         # Initialisation of variables
 
@@ -77,7 +77,6 @@ class Model_bl_sf():
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
         self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
-        
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
@@ -157,7 +156,7 @@ class Model_bl_sf():
 
                     speed = self.speed_max
 
-                print(speed)
+
 
                 # Sedimentation is processed
 
