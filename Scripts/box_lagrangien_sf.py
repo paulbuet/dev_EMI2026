@@ -58,7 +58,7 @@ class Model_bl_sf():
         self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
-        print(self.size_diam)
+
 
         # Initialisation of variables
 
@@ -156,7 +156,7 @@ class Model_bl_sf():
 
                     speed = self.speed_max
 
-                print(speed)
+
 
                 # Sedimentation is processed
 
