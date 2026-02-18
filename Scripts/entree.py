@@ -94,6 +94,7 @@ parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (defo
 parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
 parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
+parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_deformable)
 parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
 parser.add_argument('-e','--specie', help = "Pick an hydrometeor specie, accepted species are 'i', 's', 'g', 'r' or 'c'", default="r", type=check_specie)
 
@@ -104,6 +105,7 @@ deformable = parser.parse_args().deformable
 number_bin = parser.parse_args().number_bin
 number_particules = parser.parse_args().number_particules
 time_step = parser.parse_args().time_step
+CFL = parser.parse_args().CFL
 speed_max = parser.parse_args().speed_max
 esp = parser.parse_args().specie
 
