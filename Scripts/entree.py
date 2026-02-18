@@ -8,8 +8,7 @@
 import time
 import argparse
 import numpy as np
-from box_lagrangien import Model_bl
-from fonctions import Affichage
+from ditribution import distribution
 
 
 
@@ -89,7 +88,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-m','--model', help = "Choose between Box_Lagrangien and Semi_Lagrangien Scheme.", default = "Box_Lagrangien", type=check_model)
 parser.add_argument('-s','--type_advance',help="Choose between Step_Forward and Step_By_Step", default="Step_By_Step",type=check_advance)
-parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 10 , type=check_numb)
+parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 100 , type=check_numb)
 parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (deformable or not)", default='No', type=check_deformable)
 parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
 parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
@@ -111,19 +110,6 @@ esp = parser.parse_args().specie
 
 
 # We print its choices
+print(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL)
 
-print(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step)
-
-if model == 'Box_Lagrangien':
-
-    # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
-
-    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL)
-
-    profil = model_config.run()
-    concentration_formate = np.array(profil[0]).sum(axis=1)
-
-    mass_form = np.array(profil[2]).sum(axis=1)
-    Affichage.Affichage_Concentration(concentration_formate, "concentration")
-    Affichage.Affichage_Concentration(mass_form, "masse")
-    Affichage.Affichage_Precipitation(profil[1])
+distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL)

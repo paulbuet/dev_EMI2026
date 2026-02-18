@@ -15,9 +15,9 @@ import xarray_regrid
 from fonctions import InitialCond
 from fonctions import Eq
 
-class Model_bl():
+class Model_bl_sf():
    
-   def __init__(self, number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL):
+   def __init__(self,number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -51,7 +51,7 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N)
+        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = self.nb_diam,N=N)
    
         self.grid0 = condi_init.data
 
@@ -134,12 +134,10 @@ class Model_bl():
         On fait tourner le modèle pour chaque pas de temps, pour chaque mailles, pour chaque diamètres.
         On enregistre le profils des concentration en fonction de la hauteur à chaque pas de temps
         """ 
-        
-        grid_t = self.grid0
 
         for t_time in range(self.nb_step):
             
-            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
+            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : self.grid0["level"]})
 
             list_data_bin = []
             list_mass_bin = []
@@ -157,18 +155,18 @@ class Model_bl():
                 if speed> self.speed_max:
 
                     speed = self.speed_max
-                
+
                 print(speed)
 
                 # Sedimentation is processed
 
-                new_grid = self.advect_down(grid_t,speed,self.delta_t)
+                new_grid = self.advect_down(self.grid0,speed,(t_time+1) * self.delta_t)
 
                 # we add the sticthes above
                 new_grid = self.add_stitche(new_grid, diam)
 
                 # We put the stagerd grid on the good grid
-                grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
+                grid_on_old = new_grid.regrid.conservative(self.grid0, time_dim=None)
 
                 
                 
@@ -177,7 +175,7 @@ class Model_bl():
 
                
                 # We want to see how much rain touch the ground during the time step
-                M0 = round(self.mass(grid_t,f"concentration_bin_{diam}",diam),3)
+                M0 = round(self.mass(self.grid0,f"concentration_bin_{diam}",diam),3)
                 M1 = round(self.mass(grid_on_old,f"concentration_bin_{diam}",diam),3)
                 
                 self.water_on_floor = M0-M1
@@ -187,24 +185,11 @@ class Model_bl():
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
-            grid_t = grid_dt.copy()
-
-
             
         return self.list_data,self.wat_flo_on_time,self.list_mass
 
 
-
-
-
-
-
-
-
-
-        
