@@ -132,6 +132,7 @@ class Affichage :
         plt.show()
 
 
+
     
 
 
@@ -142,9 +143,9 @@ Affichage.Affichage_Concentration(Concentration, "concentration")
 Affichage.Affichage_Precipitation(Precip)
 
 
-eq_rain = eq("c")
+eq_rain = eq("r")
 
-lam=0.00001
+lam=200
 N=151515
 
 Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]

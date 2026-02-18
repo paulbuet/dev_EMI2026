@@ -19,6 +19,7 @@ from scipy.integrate import quad
 from scipy.optimize import brentq
 from collections import deque
 from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MaxNLocator
 
 ### Classes and functions definition ###
 
@@ -118,8 +119,8 @@ class Affichage :
         reversed_map = orig_map.reversed()
         plt.pcolormesh(Transpose,cmap=reversed_map)
         plt.title(f"Evolution de la {typ} de particules dans le temps")
-        plt.xlabel("Mailles du modèle")
-        plt.ylabel("Temps")
+        plt.xlabel("Temps")
+        plt.ylabel("Mailles du modèle")
         plt.colorbar()
         plt.savefig(f"results/{typ}.png")
         plt.show()
@@ -135,18 +136,19 @@ class Affichage :
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.yaxis.set_major_locator(MultipleLocator(1))
+        ax.yaxis.set_major_locator(MaxNLocator(10))
 
         time=np.linspace(1, len(Precip), len(Precip))
         time2 = time -(time[1]-time[0])/2
-        ax1.bar(time2, Precip, color="blue", label="Précip_horaire")
+        ax1.bar(time2, Precip, color="blue", label="Précip_par_pas_de_temps")
         ax1.set_xlabel("temps")
         ax1.set_ylabel("Cumul")
         ax2 = ax1.twinx()
         ax2.plot(time, Cumul, '--', color="red", label="Cumul")
-        ax2.set_ylabel('Précipitations horaires')
-        plt.title("Evolution de la précip en horaire et cumulée")
+        ax2.set_ylabel('Précip_par_pas_de_temps')
+        plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
-        fig.legend()
+        fig.legend(loc=2)
         plt.savefig("results/Précipitations.png")
         plt.show()
 
