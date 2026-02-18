@@ -108,7 +108,6 @@ class Eq :
 class Affichage :
 
     def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
-    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         #time=np.linspace(1, Temps_simu, Temps_simu)
@@ -124,10 +123,9 @@ class Affichage :
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
         plt.savefig(f"./fig/{model}/{typ}.png")
-        plt.savefig(f"./fig/{model}/{typ}.png")
         plt.show()
 
-    def Affichage_Precipitation(Precip, model):
+
     def Affichage_Precipitation(Precip, model):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
@@ -154,7 +152,6 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.show()
 
