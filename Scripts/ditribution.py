@@ -1,6 +1,6 @@
 import numpy as np
-from box_lagrangien import Model_bl
-from box_lagrangien_sf import Model_bl_sf
+from box_lagrangien_vectorised import Model_bl
+from box_lagrangien_sf_vectorised import Model_bl_sf
 
 from fonctions import Affichage
 
