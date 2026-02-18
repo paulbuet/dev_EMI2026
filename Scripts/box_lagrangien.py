@@ -17,7 +17,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max,esp):
+   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max,esp,CFL):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -72,7 +72,7 @@ class Model_bl():
         if CFL == "Yes":
             self.speed_max = self.dz / self.delta_t
         else:
-            self.speed_max = 1e12
+            self.speed_max = speed_max
 
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
