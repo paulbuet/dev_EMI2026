@@ -17,7 +17,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,CFL):
+   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max,esp):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -36,7 +36,7 @@ class Model_bl():
         self.nb_step = self.length_sim // self.delta_t  # number of time step
 
         self.nb_diam = number_bin # number of type of diameter
-        self.esp ='i'
+        self.esp = esp
    
         # Ajouter le calcul des différents diamètres dans une liste self.diameter
 
@@ -56,6 +56,8 @@ class Model_bl():
         condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N)
    
         self.grid0 = condi_init.data
+
+        self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
 
@@ -86,8 +88,6 @@ class Model_bl():
 
         shift = -V * dt   # On calcule le futur mouvement verticale
 
-
-
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
         return ds
@@ -111,7 +111,7 @@ class Model_bl():
         nb_stitche_create  += 1   # We add 1 to the number of stitch created to see if we need an other one
 
 
-        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are obove the maximum level, we stop
+        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are above the maximum level, we stop
 
             z_mid_last_i = new_grid["level"].values[-1]  # New evaluation of the height of the highest center of stitch
 
@@ -149,7 +149,7 @@ class Model_bl():
 
             for diam in range(1,self.nb_diam+1):  
 
-                # speed is calculate
+                # speed is calculated
 
                 speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
 
@@ -159,7 +159,7 @@ class Model_bl():
 
                     speed = self.speed_max
 
-                # Sedimentation is process
+                # Sedimentation is processed
 
                 new_grid = self.advect_down(grid_t,speed,self.delta_t)
 

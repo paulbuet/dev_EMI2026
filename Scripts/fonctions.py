@@ -106,7 +106,7 @@ class Eq :
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration):
+    def Affichage_Concentration(Concentration, typ): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         #time=np.linspace(1, Temps_simu, Temps_simu)
@@ -116,10 +116,12 @@ class Affichage :
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
-
-
         plt.pcolormesh(Transpose,cmap=reversed_map)
+        plt.title(f"Evolution de la {typ} de particules dans le temps")
+        plt.xlabel("Mailles du modèle")
+        plt.ylabel("Temps")
         plt.colorbar()
+        plt.savefig(f"results/{typ}.png")
         plt.show()
 
     def Affichage_Precipitation(Precip):
@@ -129,16 +131,25 @@ class Affichage :
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
-        plt.figure(figsize=(10, 10))
+        fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.yaxis.set_major_locator(MultipleLocator(1))
+
         time=np.linspace(1, len(Precip), len(Precip))
         time2 = time -(time[1]-time[0])/2
-        plt.bar(time2, Precip, color="blue")
-        plt.plot(time, Cumul, '--', color="red")
+        ax1.bar(time2, Precip, color="blue", label="Précip_horaire")
+        ax1.set_xlabel("temps")
+        ax1.set_ylabel("Cumul")
+        ax2 = ax1.twinx()
+        ax2.plot(time, Cumul, '--', color="red", label="Cumul")
+        ax2.set_ylabel('Précipitations horaires')
+        plt.title("Evolution de la précip en horaire et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
+        fig.legend()
+        plt.savefig("results/Précipitations.png")
         plt.show()
+
 
 
 
