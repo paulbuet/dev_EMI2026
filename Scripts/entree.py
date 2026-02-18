@@ -84,7 +84,7 @@ parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (defo
 parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
 parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
-parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
+parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_deformable)
 
 model = parser.parse_args().model
 type_advance = parser.parse_args().type_advance
@@ -93,7 +93,7 @@ deformable = parser.parse_args().deformable
 number_bin = parser.parse_args().number_bin
 number_particules = parser.parse_args().number_particules
 time_step = parser.parse_args().time_step
-speed_max = parser.parse_args().speed_max
+CFL = parser.parse_args().CFL
 
 
 # We print its choices
@@ -104,7 +104,7 @@ if model == 'Box_Lagrangien':
 
     # We call the code that manages the Box-Lagrangian model by initialising it with the parameters entered by the user.
 
-    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max)
+    model_config = Model_bl(type_advance,number_stitches,deformable,number_bin,number_particules,time_step,CFL)
 
     profil = model_config.run()
     concentration_formate = np.array(profil[0]).sum(axis=1)

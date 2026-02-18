@@ -17,7 +17,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,speed_max):
+   def __init__(self, type_advance,number_stitches,deformable,number_bin,number_particules,delta_t,CFL):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -30,8 +30,6 @@ class Model_bl():
         N = number_particules
 
         self.length_sim = 200  # length of simulation in seconds
-
-        self.speed_max = speed_max  # max of speed in m/s
 
         self.delta_t = delta_t # length of time step in seconds
 
@@ -68,6 +66,11 @@ class Model_bl():
         self.wat_flo_on_time=[0]  # List of this mass in time, here, time = 0 soit no precipitation
 
         self.dz = self.grid0["level"].values[2]-self.grid0["level"].values[1]   # length of a stitch
+
+        if CFL == "Yes":
+            self.speed_max = self.dz / self.delta_t
+        else:
+            self.speed_max = 1e12
 
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
