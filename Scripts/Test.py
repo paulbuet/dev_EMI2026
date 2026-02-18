@@ -139,14 +139,14 @@ class Affichage :
 Concentration=[[3, 2, 3, 5], [6, 7, 2, 28], [1, 8, 1, 1], [1, 5, 2, 6], [1, 4, 7, 6], [1, 4, 3, 5], [1, 5, 2, 7]]
 Precip=[0, 0, 0, 0, 1, 1, 2, 3, 9, 2, 1, 1, 1, 0, 0]
 
-Affichage.Affichage_Concentration(Concentration, "concentration")
-Affichage.Affichage_Precipitation(Precip)
+#Affichage.Affichage_Concentration(Concentration, "concentration")
+#Affichage.Affichage_Precipitation(Precip)
 
 
 eq_rain = eq("r")
 
-lam=200
-N=151515
+lam=980.6
+N=1000
 
 Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]
 print("Intégrale entre 0 et 500 : ", Pi)
@@ -157,7 +157,12 @@ print("Integrale entre Dmin et Dmax : ", quad(eq_rain.Gamma, dmin, dmax, args=(l
 
 
 Resultat=eq_rain.Classe_D(10, dmin, dmax, N, lam)
-print("Pour la grèle, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
+print("Pour la pluie, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
+moy=0
+for i in range(len(Resultat)):
+    moy+=Resultat[i][0]*Resultat[i][1]
+moy=moy/N
+print(f"La moyenne de taille des particules est de {moy} m")
 somme=0
 for i in range(10):
     somme+=Resultat[i][1]
