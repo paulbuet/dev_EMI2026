@@ -122,7 +122,7 @@ class Affichage :
         plt.xlabel("Temps")
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
-        plt.savefig(f"results/{typ}.png")
+        plt.savefig(f"fig/{typ}.png")
         plt.show()
 
     def Affichage_Precipitation(Precip):
