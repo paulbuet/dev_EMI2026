@@ -55,7 +55,7 @@ class distribution:
                     
                     if deformable == "No":
 
-                        model_config = Model_bl(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
+                        model_config = Model_bl_v(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
 
                         profil = model_config.run()
                         concentration_formate = np.array(profil[0]).sum(axis=1)
@@ -66,7 +66,7 @@ class distribution:
                         Affichage.Affichage_Precipitation(profil[1], model)
                 else:
                     if deformable == "No":
-                        model_config = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
+                        model_config = Model_bl_sf_v(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
 
                         profil = model_config.run()
                         concentration_formate = np.array(profil[0]).sum(axis=1)

@@ -134,7 +134,7 @@ class Affichage :
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
-        print(np.dot(Precip, liste))
+        #print(np.dot(Precip, liste))
         fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
