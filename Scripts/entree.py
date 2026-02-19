@@ -81,7 +81,16 @@ def check_specie(specie):
         raise argparse.ArgumentTypeError(f"{specie} is not an accepted specie, {accepted_species} are.")
     return specie
 
-
+def check_type_init(type_init):
+    """
+    function that takes as input the type of advancement given by the user, checks its compliance, and returns an appropriate response
+    nothing if compliant, 
+    error message otherwise
+    """
+    accepted_types = ['simple', 'gauss', 'g', 'r','c']
+    if type_init not in accepted_types:
+        raise argparse.ArgumentTypeError(f"{type_init} is not an accepted specie, {accepted_types} are.")
+    return type_init
 
 # We provide text to help the user enter their settings.
 
@@ -108,6 +117,7 @@ parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repecte
 parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
 parser.add_argument('-e','--specie', help = "Pick an hydrometeor specie, accepted species are 'i', 's', 'g', 'r' or 'c'", default="r", type=check_specie)
 parser.add_argument('-f','--efficiency_test', help = "Used as a developpement tool to compare differents versions of the models (choose between Yes and No)", default="No", type=check_efficiency_test)
+parser.add_argument('-i','--initial_condition_mode', help = "Pick the type of intialisation you want for the concentration profile (choose between 'simple' and 'gauss')", default="simple", type=check_type_init)
 
 model = parser.parse_args().model
 type_advance = parser.parse_args().type_advance
@@ -120,9 +130,10 @@ CFL = parser.parse_args().CFL
 speed_max = parser.parse_args().speed_max
 esp = parser.parse_args().specie
 efficiency_test = parser.parse_args().efficiency_test
+type_init = parser.parse_args().initial_condition_mode
 
 
 # We print its choices
-print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {number_particules} particles | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | efficiency testing: {efficiency_test}")
+print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {number_particules} particles | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init}")
 
-distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test)
+distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test,type_init)
