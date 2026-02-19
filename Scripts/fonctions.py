@@ -70,6 +70,32 @@ class Eq :
     def Lanbda(self, rho_r, N):
         return (((rho_r)/(self.a*N*self.G(self.b)))**(-1/self.b))
     
+    def Liste_Lanbda(self, rho_r, Liste_N):
+        Liste_N=np.array(Liste_N)
+        Ga=self.G(self.b)
+        Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
+        Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
+        return Liste_lanbda
+    
+    def Liste_Dmin_Dmax(self, rho_r, Liste_N):
+        Liste_Lanbda=self.Liste_Lanbda(rho_r, Liste_N)
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm_avec_nan = Liste_Dm.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
+        print(Liste_Dm_avec_nan)
+        Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
+        return Liste_Dm_avec_nan
+
+    def Liste_Vitesse(self, rho_r, Liste_N):
+        Liste_Dm=self.Liste_Dmin_Dmax(rho_r, Liste_N)
+        Vitesse= self.a*(Liste_Dm**self.b)
+        return Vitesse
+    
     def Masse(self, diametre):
         return (self.a*(diametre**self.b))
     
@@ -88,8 +114,8 @@ class Eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
-        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.1, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.9, 0, D_high)
  
         return Dmin, Dmax
     

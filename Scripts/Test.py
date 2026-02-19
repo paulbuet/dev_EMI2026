@@ -62,6 +62,33 @@ class eq :
     def Calcul_rho_r(self, m, n):
         return np.dot(m,n)
     
+    def Liste_Lanbda(self, rho_r, Liste_N):
+        Liste_N=np.array(Liste_N)
+        Ga=self.G(self.b)
+        Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
+        Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
+        print("Liste lambda : ", Liste_lanbda)
+        return Liste_lanbda
+    
+    def Liste_Dmin_Dmax(self, rho_r, Liste_N):
+        Liste_Lanbda=self.Liste_Lanbda(rho_r, Liste_N)
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm_avec_nan = Liste_Dm.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
+        print(Liste_Dm_avec_nan)
+        Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
+        return Liste_Dm_avec_nan
+
+    def Liste_Vitesse(self, rho_r, Liste_N):
+        Liste_Dm=self.Liste_Dmin_Dmax(rho_r, Liste_N)
+        Vitesse= self.a*(Liste_Dm**self.b)
+        return Vitesse
+
     def Dmin_Dmax(self, lam):
  
         def F(D):
@@ -71,8 +98,8 @@ class eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
-        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.1, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.9, 0, D_high)
  
         return Dmin, Dmax
 
@@ -143,30 +170,29 @@ Precip=[0, 0, 0, 0, 1, 1, 2, 3, 9, 2, 1, 1, 1, 0, 0]
 #Affichage.Affichage_Precipitation(Precip)
 
 
+a=[0, 1, 1, 3, 3, 6, 3, 7, 0, 7 , 1, 2]
+a=[np.nan if x==0 else x for x in a]
+print(a)
+a=np.array(a)
+b=0.2*a
+print(b)
+c=4/a
+print(c)
+
+
 eq_rain = eq("r")
 
 lam=980.6
 N=1000
+rho_r=1
 
-Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]
-print("Intégrale entre 0 et 500 : ", Pi)
-dmin, dmax = eq_rain.Dmin_Dmax(lam)
-print("Integrale entre 0 et Dmax : ", quad(eq_rain.Gamma, 0, dmax, args=(lam))[0])
-print("Integrale entre Dmin et 500 : ", quad(eq_rain.Gamma, dmin, 500, args=(lam))[0])
-print("Integrale entre Dmin et Dmax : ", quad(eq_rain.Gamma, dmin, dmax, args=(lam))[0])
+Liste_N=[0, 7, 6, 3, 6, 12, 24, 23, 47, 48, 59, 3, 89, 2, 6, 75, 1]
+print(eq_rain.Liste_Vitesse(rho_r, Liste_N))
 
 
-Resultat=eq_rain.Classe_D(10, dmin, dmax, N, lam)
-print("Pour la pluie, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
-moy=0
-for i in range(len(Resultat)):
-    moy+=Resultat[i][0]*Resultat[i][1]
-moy=moy/N
-print(f"La moyenne de taille des particules est de {moy} m")
-somme=0
-for i in range(10):
-    somme+=Resultat[i][1]
-print("Le résultat de la somme totale des particules est : ", somme)
+
+
+
 
 
 
