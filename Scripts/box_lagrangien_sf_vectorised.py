@@ -18,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl_sf():
    
-   def __init__(self,number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL):
+   def __init__(self,number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -52,7 +52,7 @@ class Model_bl_sf():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = self.nb_diam,N=N)
+        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = self.nb_diam,N=N,mode=type_init)
    
         self.grid0 = condi_init.data
 
