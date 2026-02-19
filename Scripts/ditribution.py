@@ -21,7 +21,7 @@ class distribution:
                         profil = model_config.run()
                         concentration_formate = np.array(profil[0]).sum(axis=1)
                         b = time.time()
-                        print (f"temps : {b-a}")
+                        print (f"temps : {b-a} s")
 
                         a = time.time()
                         model_config = Model_bl_v(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
@@ -31,7 +31,7 @@ class distribution:
                         
                         b = time.time()
                         b = time.time()
-                        print (f"temps v : {b-a}")
+                        print (f"temps v : {b-a} s")
 
                         mass_form = np.array(profil[2]).sum(axis=1)
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
