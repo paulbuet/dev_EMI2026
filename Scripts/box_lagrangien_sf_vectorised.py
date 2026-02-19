@@ -10,6 +10,7 @@
 import numpy as np
 import xarray as xr
 import xarray_regrid
+from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
@@ -140,7 +141,10 @@ class Model_bl_sf():
         On enregistre le profils des concentration en fonction de la hauteur à chaque pas de temps
         """ 
 
-        for t_time in range(self.nb_step):
+        print (" ")
+        print ("---------------------------------------")
+
+        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0):
             
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : self.grid0["level"]})
 
@@ -149,7 +153,7 @@ class Model_bl_sf():
             wat_flo_tot=[]
 
 
-            for diam in range(1,self.nb_diam+1):  
+            for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
 
                 # Sedimentation is processed
 
@@ -182,6 +186,9 @@ class Model_bl_sf():
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
+
+        print ("---------------------------------------")
+        print(" ")
             
         return self.list_data,self.wat_flo_on_time,self.list_mass
 

@@ -123,6 +123,6 @@ efficiency_test = parser.parse_args().efficiency_test
 
 
 # We print its choices
-print(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test)
+print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {number_particules} particles | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | efficiency testing: {efficiency_test}")
 
 distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test)
