@@ -190,6 +190,6 @@ class Model_bl_sf():
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             
-        return self.list_data,self.wat_flo_on_time,self.list_mass
+        return self.list_data,self.wat_flo_on_time,self.list_mass 
 
 

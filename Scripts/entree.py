@@ -90,7 +90,7 @@ def check_type_init(type_init):
     accepted_types = ['simple', 'gauss', 'g', 'r','c']
     if type_init not in accepted_types:
         raise argparse.ArgumentTypeError(f"{type_init} is not an accepted specie, {accepted_types} are.")
-    return type_init
+    return type_init 
 
 # We provide text to help the user enter their settings.
 
