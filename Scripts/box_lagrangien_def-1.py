@@ -10,6 +10,7 @@
 import numpy as np
 import xarray as xr
 import xarray_regrid
+from fipy.meshes.uniformGrid1D import UniformGrid1D
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
@@ -17,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
+   def __init__(self, number_stitches,time_step,speed_max,esp,CFL):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -25,15 +26,12 @@ class Model_bl():
 
         self.number_stitches = number_stitches
 
-        N = number_particules
-
         self.length_sim = 200  # length of simulation in seconds
 
-        self.delta_t = delta_t # length of time step in seconds
+        self.delta_t = time_step # length of time step in seconds
 
         self.nb_step = self.length_sim // self.delta_t  # number of time step
 
-        self.nb_diam = number_bin # number of type of diameter
         self.esp = esp
    
         # Ajouter le calcul des différents diamètres dans une liste self.diameter
@@ -51,13 +49,13 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = 1,N=N)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.bin_concentration)[:,0]
+        self.vec_bound = sorted(np.concatenate((self.vertical_boundaries,self.vertical_boundaries)))
 
         # Initialisation of variables
 
@@ -74,22 +72,17 @@ class Model_bl():
 
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
-        self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
         self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
+
+        # speed is calculated
+
+        self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
         
+
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
-   def advect_down(self,ds, V, dt):
-        """
-        Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
-        """
-
-        shift = -V * dt   # On calcule le futur mouvement verticale
-
-        # On applique au centre des mailles le déplacement
-        ds = ds.assign_coords(level=ds["level"] + shift)
-        return ds
+  
    
    def add_stitche(self,new_grid,diam):
     
@@ -135,69 +128,56 @@ class Model_bl():
         On enregistre le profils des concentration en fonction de la hauteur à chaque pas de temps
         """ 
         
+        
         grid_t = self.grid0
 
-        for t_time in range(self.nb_step):
-            
+        for t in range(self.nb_step):
+
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
-            list_data_bin = []
-            list_mass_bin = []
-            wat_flo_tot=[]
+            grid_dt = grid_dt.assign(**{"concentration":(("level",),np.zeros())})
+
+            self.new_vec_bound = self.vec_bound - self.speed * self.delta_t
+
+            self.speed_max = np.max(self.speed)
+
+            height_bot = -self.speed_max * self.delta_t
+
+            for i in range(self.number_stitches):
+                dz = (self.new_vec_bound[i*2+1]  - self.new_vec_bound[i*2]) /2
+                nb_stit_inf = (abs(height_bot)+self.new_vec_bound[i*2]) // dz + 1
+                nb_stit_sup = (self.z_top_ref - self.new_vec_bound[i*2+1]) // dz + 1
+
+                mesh_inf = UniformGrid1D(dz = dz,nx = nb_stit_inf,  origin = (self.new_vec_bound[i*2+1],))
+                mesh_sup = UniformGrid1D(dz = dz,nx = nb_stit_sup,  origin = (self.new_vec_bound[i*2+1],))
+
+                mesh_tot = mesh_inf + mesh_sup
+
+                data = np.zeros(nb_stit_inf+nb_stit_sup)
+
+                data = np.insert(data,concentration,np.where(mesh_tot.cellCenters==self.new_vec_bound[i*2+1]-dz))
+
+                self.data_i = xr.Dataset(data_vars= data, coords = {"level" : mesh_tot.cellCenters})
+
+                grid_i = self.data_i.regrid.conservative(grid0,time_dim=None)
+
+                grid_i["concentration"] = grid_i["concentration"].copy(data=grid_i["concentration"].data.todense())
 
 
-            for diam in range(1,self.nb_diam+1):  
-
-                # speed is calculated
-
-                speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
+                grid_dt = grid_dt + grid_i
 
 
+            M0 = round(self.mass(grid_dt),3)
+            M1 = round(self.mass(grid_t),3)
+            
+            self.water_on_floor = M0-M1
 
-                if speed> self.speed_max:
-
-                    speed = self.speed_max
-
-
-                # Sedimentation is processed
-
-                new_grid = self.advect_down(grid_t,speed,self.delta_t)
-
-                # we add the sticthes above
-                new_grid = self.add_stitche(new_grid, diam)
-
-                # We put the stagerd grid on the good grid
-                grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
-
-                
-                
-                # Here, we transform a sparse vector to a dense one
-                grid_on_old[f"concentration_bin_{diam}"] = grid_on_old[f"concentration_bin_{diam}"].copy(data=grid_on_old[f"concentration_bin_{diam}"].data.todense())
-
-               
-                # We want to see how much rain touch the ground during the time step
-                M0 = round(self.mass(grid_t,f"concentration_bin_{diam}",diam),3)
-                M1 = round(self.mass(grid_on_old,f"concentration_bin_{diam}",diam),3)
-                
-                self.water_on_floor = M0-M1
-
-
-                list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
-                list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
-                wat_flo_tot.append(self.water_on_floor)
-                
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
-
+            list_data.append(grid_dt[f"concentration"].values)
+            wat_flo_tot.append(self.water_on_floor)
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
-
-
-            
-        return self.list_data,self.wat_flo_on_time,self.list_mass 
-
-
 
 
 

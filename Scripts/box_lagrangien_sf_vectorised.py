@@ -10,14 +10,15 @@
 import numpy as np
 import xarray as xr
 import xarray_regrid
+from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
 from fonctions import Eq
 
-class Model_bl():
+class Model_bl_sf():
    
-   def __init__(self, number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
+   def __init__(self,number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -51,13 +52,14 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = self.nb_diam,N=N,mode=type_init)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.bin_concentration)[:,0]
+        
 
         # Initialisation of variables
 
@@ -77,6 +79,10 @@ class Model_bl():
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
         self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
         
+        # speed is calculated
+
+        self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
+
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
@@ -134,40 +140,30 @@ class Model_bl():
         On fait tourner le modèle pour chaque pas de temps, pour chaque mailles, pour chaque diamètres.
         On enregistre le profils des concentration en fonction de la hauteur à chaque pas de temps
         """ 
-        
-        grid_t = self.grid0
 
-        for t_time in range(self.nb_step):
+        print (" ")
+        print ("---------------------------------------")
+
+        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0):
             
-            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
+            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : self.grid0["level"]})
 
             list_data_bin = []
             list_mass_bin = []
             wat_flo_tot=[]
 
 
-            for diam in range(1,self.nb_diam+1):  
-
-                # speed is calculated
-
-                speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
-
-
-
-                if speed> self.speed_max:
-
-                    speed = self.speed_max
-
+            for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
 
                 # Sedimentation is processed
 
-                new_grid = self.advect_down(grid_t,speed,self.delta_t)
+                new_grid = self.advect_down(self.grid0,self.speeds[diam-1],(t_time+1) * self.delta_t)
 
                 # we add the sticthes above
                 new_grid = self.add_stitche(new_grid, diam)
 
                 # We put the stagerd grid on the good grid
-                grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
+                grid_on_old = new_grid.regrid.conservative(self.grid0, time_dim=None)
 
                 
                 
@@ -176,7 +172,7 @@ class Model_bl():
 
                
                 # We want to see how much rain touch the ground during the time step
-                M0 = round(self.mass(grid_t,f"concentration_bin_{diam}",diam),3)
+                M0 = round(self.mass(self.grid0,f"concentration_bin_{diam}",diam),3)
                 M1 = round(self.mass(grid_on_old,f"concentration_bin_{diam}",diam),3)
                 
                 self.water_on_floor = M0-M1
@@ -186,24 +182,14 @@ class Model_bl():
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
-            grid_t = grid_dt.copy()
 
-
+        print ("---------------------------------------")
+        print(" ")
             
         return self.list_data,self.wat_flo_on_time,self.list_mass 
 
 
-
-
-
-
-
-
-
-
-        

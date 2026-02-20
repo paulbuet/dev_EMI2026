@@ -10,6 +10,7 @@
 import numpy as np
 import xarray as xr
 import xarray_regrid
+from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
@@ -17,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
+   def __init__(self, number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -29,7 +30,7 @@ class Model_bl():
 
         self.length_sim = 200  # length of simulation in seconds
 
-        self.delta_t = delta_t # length of time step in seconds
+        self.delta_t = time_step # length of time step in seconds
 
         self.nb_step = self.length_sim // self.delta_t  # number of time step
 
@@ -76,7 +77,12 @@ class Model_bl():
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
         self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
+
+        # speed is calculated
+
+        self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
         
+
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
 
@@ -137,7 +143,10 @@ class Model_bl():
         
         grid_t = self.grid0
 
-        for t_time in range(self.nb_step):
+        print (" ")
+        print ("---------------------------------------")
+
+        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0):
             
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
@@ -146,22 +155,11 @@ class Model_bl():
             wat_flo_tot=[]
 
 
-            for diam in range(1,self.nb_diam+1):  
-
-                # speed is calculated
-
-                speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
-
-
-
-                if speed> self.speed_max:
-
-                    speed = self.speed_max
-
+            for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
 
                 # Sedimentation is processed
 
-                new_grid = self.advect_down(grid_t,speed,self.delta_t)
+                new_grid = self.advect_down(grid_t,self.speeds[diam-1],self.delta_t)
 
                 # we add the sticthes above
                 new_grid = self.add_stitche(new_grid, diam)
@@ -192,6 +190,9 @@ class Model_bl():
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
+            
+        print ("---------------------------------------")
+        print(" ")
 
 
             

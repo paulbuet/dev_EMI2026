@@ -149,8 +149,8 @@ class Eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.1, 0, D_high)
-        Dmax = brentq(lambda D: F(D) - 0.9, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
  
         return Dmin, Dmax
     
@@ -161,7 +161,7 @@ class Eq :
             Di=(1+2*i)*Intervalle/2 + Dmin
             
             P_i=quad(self.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
-            print(i, P_i)
+            #print(i, P_i)
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
@@ -183,13 +183,13 @@ class Eq :
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         #time=np.linspace(1, Temps_simu, Temps_simu)
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        print(Temps_simu, nb_boites)
+        #print(Temps_simu, nb_boites)
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
@@ -198,16 +198,19 @@ class Affichage :
         plt.xlabel("Temps")
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
-        plt.savefig(f"results/{typ}.png")
+        plt.savefig(f"./fig/{model}/{typ}.png")
         plt.show()
 
-    def Affichage_Precipitation(Precip):
+
+    def Affichage_Precipitation(Precip, model):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
+
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
+        #print(np.dot(Precip, liste))
         fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
@@ -225,7 +228,7 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig("results/Précipitations.png")
+        plt.savefig(f"./fig/{model}/Précipitations.png")
         plt.show()
 
 
@@ -261,7 +264,7 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, rho_r = 1, N = 1) :
+    def __init__(self, nb_grid, esp, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, rho_r = 0.00001, N = 1) :
 
         if nb_grid == "ARO" : 
             self.levels_boundaries = [5.00148256575414, 16.7609146275979, 31.9999856716034, 50.6506387418972, 72.6448134875948, 97.9144556307367, 126.391508411840, 158.007915671418, 192.695621996127, 230.386571302649, 271.012706897240, 314.505973414367, 360.798314810016, 409.821674828922, 461.507997847950, 515.890042408161, 573.093937517738, 633.231198491812, 696.398736766220, 762.678848044096, 832.139215500780, 904.832909766711, 980.798389785428, 1060.05950095623, 1142.62547636213, 1228.49093654830, 1317.63588971212, 1410.02573054417, 1505.73432230725, 1604.93984760156, 1707.79812299161, 1814.44258334521, 1924.98428740911, 2039.51193175523, 2280.76794378598, 2407.56182949566, 2538.47269089309, 2673.47735336959, 2812.53026865253, 2955.56351459630, 3102.48360541930, 3253.19498943504, 3407.62661862652, 3565.73195622143, 3727.48898443499, 3892.90019410005, 4061.99258757885, 4234.81767907587, 4411.45149612596, 4591.99457746971, 4776.57197432233, 4965.33325159684, 5158.45249292134, 5356.12828712931, 5558.65852457596, 5766.45816179863, 5980.00284181189, 6199.82890110527, 6426.53336977965, 6660.77397670184, 6903.26915353359, 7154.79804227343, 7416.20049682756, 7688.37709125546, 7972.28912861375, 8268.07660797884, 8575.22917035383, 8893.62412699775, 9223.52646472597, 9565.58886389478, 9920.85173976858, 10290.7432801852, 10677.0795176319, 11082.0546910758, 11510.3223903101, 11966.1795634141, 12454.7528314299, 12982.0128918015, 13554.6557230282, 14180.1025765563, 14866.4999945363, 15627.4731252487, 16485.0471290191, 17467.8152385289, 18610.9387773901, 19955.6070022098, 21550.0160473017, 23450.1477297912, 34461.1214067193]
@@ -280,16 +283,18 @@ class InitialCond :
             concentration_profile = [0 for i in range (nb_levels)]
             concentration_profile [-1] = 1
         if mode == "gauss" :
-            concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_grid)]
+            concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
+
+        self.rho_r_profile = np.array(concentration_profile) * rho_r
 
         eq=Eq(esp)
         lam = eq.Lanbda (rho_r, N)
         dmin, dmax = eq.Dmin_Dmax(lam)
         self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
-        
+
         bin_profile = [np.array(concentration_profile) * self.bin_concentration[i][1] for i in range(len(self.bin_concentration))] # computinng of the n bin profiles
         data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(self.bin_concentration))}
-        
+
         data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.bin_concentration[ind_bin][0] for ind_bin in range(len(self.bin_concentration))} # addition of the diameters
         data_vars1.update(data_vars2)
 
