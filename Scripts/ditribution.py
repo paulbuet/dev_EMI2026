@@ -75,17 +75,17 @@ class distribution:
                         mass_form = np.array(profil[2]).sum(axis=1)
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
                         Affichage.Affichage_Concentration(mass_form, "masse", model)
-                        Affichage.Affichage_Precipitation(profil[1], model) 
                         Affichage.Affichage_Precipitation(profil[1], model)
+
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
+                print (cls)
                 model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
+                model_config_bl = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
 
-                profil = model_config.run()
-                concentration_formate = np.array(profil[0]).sum(axis=1)
+                model_config.run()
 
-                mass_form = np.array(profil[2]).sum(axis=1)
-                Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
-                Affichage.Affichage_Concentration(mass_form, "masse", model)
-                Affichage.Affichage_Precipitation(profil[1], model)
+                print (f"{model_config.__dict__}")
+                print (f"{model_config_bl.__dict__}")
+                print(model_config.rho_r_profile)
 
