@@ -78,8 +78,7 @@ class Eq :
         Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
         return Liste_lanbda
     
-    def Liste_Dmin_Dmax(self, rho_r, Liste_N):
-        Liste_Lanbda=self.Liste_Lanbda(rho_r, Liste_N)
+    def Liste_Dmin_Dmax(self, Liste_Lanbda):
         Liste_Lanbda=np.array(Liste_Lanbda)
         indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
@@ -91,8 +90,8 @@ class Eq :
         Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
         return Liste_Dm_avec_nan
 
-    def Liste_Vitesse_Concentration(self, rho_r, Liste_N):
-        Liste_Dm=self.Liste_Dmin_Dmax(rho_r, Liste_N)
+    def Liste_Vitesse_Concentration(self, Liste_Lanbda):
+        Liste_Dm=self.Liste_Dmin_Dmax(Liste_Lanbda)
         Vitesse= self.a*(Liste_Dm**self.b)
 
     def Gamma_Masse(self, M, lam):
