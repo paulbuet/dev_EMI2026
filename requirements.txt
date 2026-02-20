@@ -4,3 +4,4 @@ xarray
 xarray-regrid
 xesmf
 pppy
+fipy
