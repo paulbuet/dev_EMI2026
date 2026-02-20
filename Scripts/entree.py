@@ -81,6 +81,16 @@ def check_specie(specie):
         raise argparse.ArgumentTypeError(f"{specie} is not an accepted specie, {accepted_species} are.")
     return specie
 
+def check_type_init(type_init):
+    """
+    function that takes as input the type of advancement given by the user, checks its compliance, and returns an appropriate response
+    nothing if compliant, 
+    error message otherwise
+    """
+    accepted_types = ['simple', 'gauss', 'g', 'r','c']
+    if type_init not in accepted_types:
+        raise argparse.ArgumentTypeError(f"{type_init} is not an accepted specie, {accepted_types} are.")
+    return type_init 
 
 
 # We provide text to help the user enter their settings.

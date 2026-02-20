@@ -75,6 +75,7 @@ class distribution:
                         mass_form = np.array(profil[2]).sum(axis=1)
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
                         Affichage.Affichage_Concentration(mass_form, "masse", model)
+                        Affichage.Affichage_Precipitation(profil[1], model) 
                         Affichage.Affichage_Precipitation(profil[1], model)
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
