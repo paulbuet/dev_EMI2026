@@ -10,6 +10,7 @@
 import numpy as np
 import xarray as xr
 import xarray_regrid
+from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
@@ -17,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL):
+   def __init__(self, number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -51,7 +52,7 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N)
+        condi_init = InitialCond(self.number_stitches,'i',nb_classes = self.nb_diam,N=N,mode=type_init)
    
         self.grid0 = condi_init.data
 
@@ -142,7 +143,10 @@ class Model_bl():
         
         grid_t = self.grid0
 
-        for t_time in range(self.nb_step):
+        print (" ")
+        print ("---------------------------------------")
+
+        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0):
             
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
@@ -151,7 +155,7 @@ class Model_bl():
             wat_flo_tot=[]
 
 
-            for diam in range(1,self.nb_diam+1):  
+            for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
 
                 # Sedimentation is processed
 
@@ -186,10 +190,13 @@ class Model_bl():
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
+            
+        print ("---------------------------------------")
+        print(" ")
 
 
             
-        return self.list_data,self.wat_flo_on_time,self.list_mass
+        return self.list_data,self.wat_flo_on_time,self.list_mass 
 
 
 

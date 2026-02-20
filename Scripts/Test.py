@@ -55,13 +55,76 @@ class eq :
     
     def Masse(self, diametre):
         return (self.a*(diametre**self.b))
+
+    def Gamma_Masse(self, M, lam):
+        return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
+
+    def Vitesse_Masse(self, M):
+        return (self.c*((M/self.a)**(self.d/self.b)))
+
+    def Massemin_Massemax(self, lam):
+ 
+        def Fct(M):
+            return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
+ 
+        M_high = 1.0 / lam # échelle naturelle
+        while Fct(M_high) < 0.999:
+            M_high *= 2
+
+        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+ 
+        return Massemin, Massemax
+        
+    def Liste_Massemin_Massemax(self, Liste_Lanbda):
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_M=[self.Massemin_Massemax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_M_avec_nan = Liste_M.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_M_avec_nan.insert(i, (np.nan, np.nan))
+        Liste_M_avec_nan=np.array(Liste_M_avec_nan)
+        return Liste_M_avec_nan
     
+    def Liste_Vitesse_Masse(self, Liste_lanbda):
+        Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
+        #Vitesse= self.c*((Liste_M/self.a)**(self.d/self.b))
+        Vitesse=self.Vitesse_Masse(Liste_M)
+        return Vitesse
+
+
     def Vitesse(self,diametre):
         return(self.c*(diametre**self.d))
     
     def Calcul_rho_r(self, m, n):
         return np.dot(m,n)
     
+    def Liste_Lanbda(self, rho_r, Liste_N):
+        Liste_N=np.array(Liste_N)
+        Ga=self.G(self.b)
+        Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
+        Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
+        print("Liste lambda : ", Liste_lanbda)
+        return Liste_lanbda
+    
+    def Liste_Dmin_Dmax(self, Liste_Lanbda):
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm_avec_nan = Liste_Dm.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
+        Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
+        return Liste_Dm_avec_nan
+
+    def Liste_Vitesse_Concentration(self, Liste_lam):
+        Liste_Dm=self.Liste_Dmin_Dmax(Liste_lam)
+        Vitesse= self.a*(Liste_Dm**self.b)
+        return Vitesse
+
     def Dmin_Dmax(self, lam):
  
         def F(D):
@@ -71,8 +134,8 @@ class eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
-        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.1, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.9, 0, D_high)
  
         return Dmin, Dmax
 
@@ -87,6 +150,20 @@ class eq :
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
+    
+    def Liste_rho_r(self, Liste_N, Liste_lambda):
+        Liste_N=np.array(Liste_N)
+        Liste_lambda=np.array(Liste_lambda)
+        G_b=self.G(self.b)
+        Liste_rho_r=self.a*Liste_N*G_b*(Liste_lambda**(-self.b))
+        return Liste_rho_r
+
+    
+    def Calcul_Masse_Tot(self,liste_rho_r, hauteur_col):
+        liste_rho_r_sans_nan=np.array([x for x in liste_rho_r if not np.isnan(x)])
+        rho_tot=np.sum(liste_rho_r_sans_nan)
+        Masse_tot=rho_tot*hauteur_col
+        return Masse_tot
     
 class Affichage :
 
@@ -143,30 +220,30 @@ Precip=[0, 0, 0, 0, 1, 1, 2, 3, 9, 2, 1, 1, 1, 0, 0]
 #Affichage.Affichage_Precipitation(Precip)
 
 
+
 eq_rain = eq("r")
 
-lam=980.6
-N=1000
+lam = 980.6
+N = 1000
+rho_r = 1
+M = 0.001
+hauteur = 100
 
-Pi=quad(eq_rain.Gamma, 0, 500, args=(lam))[0]
-print("Intégrale entre 0 et 500 : ", Pi)
-dmin, dmax = eq_rain.Dmin_Dmax(lam)
-print("Integrale entre 0 et Dmax : ", quad(eq_rain.Gamma, 0, dmax, args=(lam))[0])
-print("Integrale entre Dmin et 500 : ", quad(eq_rain.Gamma, dmin, 500, args=(lam))[0])
-print("Integrale entre Dmin et Dmax : ", quad(eq_rain.Gamma, dmin, dmax, args=(lam))[0])
+Liste_N = [0, 7, 6, 3, 6, 12, 24, 23, 47, 48, 59, 3, 89, 2, 6, 75, 1]
+Liste_lam = eq_rain.Liste_Lanbda(rho_r, Liste_N)
+
+liste_rho_r=eq_rain.Liste_rho_r(Liste_N, Liste_lam)
+
+print(liste_rho_r)
+print(eq_rain.Calcul_Masse_Tot(liste_rho_r, hauteur))
+
+print("Masse : ", eq_rain.Liste_Vitesse_Masse(Liste_lam))
+print("Concentration : ", eq_rain.Liste_Vitesse_Concentration(Liste_lam))
 
 
-Resultat=eq_rain.Classe_D(10, dmin, dmax, N, lam)
-print("Pour la pluie, avec lambda=0.5, en fixant 6 différentes classes et un nombres totales de particules à 1000 on obtient la répartition : ", Resultat)
-moy=0
-for i in range(len(Resultat)):
-    moy+=Resultat[i][0]*Resultat[i][1]
-moy=moy/N
-print(f"La moyenne de taille des particules est de {moy} m")
-somme=0
-for i in range(10):
-    somme+=Resultat[i][1]
-print("Le résultat de la somme totale des particules est : ", somme)
+
+
+
 
 
 

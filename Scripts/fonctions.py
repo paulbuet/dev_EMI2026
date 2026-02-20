@@ -70,6 +70,67 @@ class Eq :
     def Lanbda(self, rho_r, N):
         return (((rho_r)/(self.a*N*self.G(self.b)))**(-1/self.b))
     
+    def Liste_Lanbda(self, rho_r, Liste_N):
+        Liste_N=np.array(Liste_N)
+        Ga=self.G(self.b)
+        Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
+        Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
+        return Liste_lanbda
+    
+    def Liste_Dmin_Dmax(self, rho_r, Liste_N):
+        Liste_Lanbda=self.Liste_Lanbda(rho_r, Liste_N)
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm_avec_nan = Liste_Dm.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
+        print(Liste_Dm_avec_nan)
+        Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
+        return Liste_Dm_avec_nan
+
+    def Liste_Vitesse_Concentration(self, rho_r, Liste_N):
+        Liste_Dm=self.Liste_Dmin_Dmax(rho_r, Liste_N)
+        Vitesse= self.a*(Liste_Dm**self.b)
+
+    def Gamma_Masse(self, M, lam):
+        return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
+
+    def Vitesse_Masse(self, M):
+        return (self.c*((M/self.a)**(self.d/self.b)))
+
+    def Massemin_Massemax(self, lam):
+ 
+        def Fct(M):
+            return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
+ 
+        M_high = 1.0 / lam # échelle naturelle
+        while Fct(M_high) < 0.999:
+            M_high *= 2
+
+        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+ 
+        return Massemin, Massemax
+        
+    def Liste_Massemin_Massemax(self, Liste_Lanbda):
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_M=[self.Massemin_Massemax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_M_avec_nan = Liste_M.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_M_avec_nan.insert(i, (np.nan, np.nan))
+        Liste_M_avec_nan=np.array(Liste_M_avec_nan)
+        return Liste_M_avec_nan
+    
+    def Liste_Vitesse_Masse(self, Liste_lanbda):
+        Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
+        Vitesse=self.Vitesse_Masse(Liste_M)
+        return Vitesse
+
     def Masse(self, diametre):
         return (self.a*(diametre**self.b))
     
@@ -104,6 +165,21 @@ class Eq :
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
+    
+    def Liste_rho_r(self, Liste_N, Liste_lambda):
+        Liste_N=np.array(Liste_N)
+        Liste_lambda=np.array(Liste_lambda)
+        G_b=self.G(self.b)
+        Liste_rho_r=self.a*Liste_N*G_b*(Liste_lambda**(-self.b))
+        return Liste_rho_r
+
+    
+    def Calcul_Masse_Tot(self,liste_rho_r, hauteur_col):
+        liste_rho_r_sans_nan=np.array([x for x in liste_rho_r if not np.isnan(x)])
+        rho_tot=np.sum(liste_rho_r_sans_nan)
+        Masse_tot=rho_tot*hauteur_col
+        return Masse_tot
+    
 
 class Affichage :
 
@@ -134,7 +210,7 @@ class Affichage :
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
-        print(np.dot(Precip, liste))
+        #print(np.dot(Precip, liste))
         fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
@@ -188,7 +264,7 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, rho_r = 1, N = 1) :
+    def __init__(self, nb_grid, esp, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, rho_r = 0.00001, N = 1) :
 
         if nb_grid == "ARO" : 
             self.levels_boundaries = [5.00148256575414, 16.7609146275979, 31.9999856716034, 50.6506387418972, 72.6448134875948, 97.9144556307367, 126.391508411840, 158.007915671418, 192.695621996127, 230.386571302649, 271.012706897240, 314.505973414367, 360.798314810016, 409.821674828922, 461.507997847950, 515.890042408161, 573.093937517738, 633.231198491812, 696.398736766220, 762.678848044096, 832.139215500780, 904.832909766711, 980.798389785428, 1060.05950095623, 1142.62547636213, 1228.49093654830, 1317.63588971212, 1410.02573054417, 1505.73432230725, 1604.93984760156, 1707.79812299161, 1814.44258334521, 1924.98428740911, 2039.51193175523, 2280.76794378598, 2407.56182949566, 2538.47269089309, 2673.47735336959, 2812.53026865253, 2955.56351459630, 3102.48360541930, 3253.19498943504, 3407.62661862652, 3565.73195622143, 3727.48898443499, 3892.90019410005, 4061.99258757885, 4234.81767907587, 4411.45149612596, 4591.99457746971, 4776.57197432233, 4965.33325159684, 5158.45249292134, 5356.12828712931, 5558.65852457596, 5766.45816179863, 5980.00284181189, 6199.82890110527, 6426.53336977965, 6660.77397670184, 6903.26915353359, 7154.79804227343, 7416.20049682756, 7688.37709125546, 7972.28912861375, 8268.07660797884, 8575.22917035383, 8893.62412699775, 9223.52646472597, 9565.58886389478, 9920.85173976858, 10290.7432801852, 10677.0795176319, 11082.0546910758, 11510.3223903101, 11966.1795634141, 12454.7528314299, 12982.0128918015, 13554.6557230282, 14180.1025765563, 14866.4999945363, 15627.4731252487, 16485.0471290191, 17467.8152385289, 18610.9387773901, 19955.6070022098, 21550.0160473017, 23450.1477297912, 34461.1214067193]
@@ -207,16 +283,18 @@ class InitialCond :
             concentration_profile = [0 for i in range (nb_levels)]
             concentration_profile [-1] = 1
         if mode == "gauss" :
-            concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_grid)]
+            concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
+
+        self.rho_r_profile = np.array(concentration_profile) * rho_r
 
         eq=Eq(esp)
         lam = eq.Lanbda (rho_r, N)
         dmin, dmax = eq.Dmin_Dmax(lam)
         self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
-        
+
         bin_profile = [np.array(concentration_profile) * self.bin_concentration[i][1] for i in range(len(self.bin_concentration))] # computinng of the n bin profiles
         data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(self.bin_concentration))}
-        
+
         data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.bin_concentration[ind_bin][0] for ind_bin in range(len(self.bin_concentration))} # addition of the diameters
         data_vars1.update(data_vars2)
 

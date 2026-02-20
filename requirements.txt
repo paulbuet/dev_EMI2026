@@ -1,0 +1,7 @@
+tqdm
+scipy
+xarray
+xarray-regrid
+xesmf
+pppy
+fipy
