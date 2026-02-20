@@ -70,6 +70,67 @@ class Eq :
     def Lanbda(self, rho_r, N):
         return (((rho_r)/(self.a*N*self.G(self.b)))**(-1/self.b))
     
+    def Liste_Lanbda(self, rho_r, Liste_N):
+        Liste_N=np.array(Liste_N)
+        Ga=self.G(self.b)
+        Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
+        Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
+        return Liste_lanbda
+    
+    def Liste_Dmin_Dmax(self, rho_r, Liste_N):
+        Liste_Lanbda=self.Liste_Lanbda(rho_r, Liste_N)
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm_avec_nan = Liste_Dm.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
+        print(Liste_Dm_avec_nan)
+        Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
+        return Liste_Dm_avec_nan
+
+    def Liste_Vitesse_Concentration(self, rho_r, Liste_N):
+        Liste_Dm=self.Liste_Dmin_Dmax(rho_r, Liste_N)
+        Vitesse= self.a*(Liste_Dm**self.b)
+
+    def Gamma_Masse(self, M, lam):
+        return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
+
+    def Vitesse_Masse(self, M):
+        return (self.c*((M/self.a)**(self.d/self.b)))
+
+    def Massemin_Massemax(self, lam):
+ 
+        def Fct(M):
+            return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
+ 
+        M_high = 1.0 / lam # échelle naturelle
+        while Fct(M_high) < 0.999:
+            M_high *= 2
+
+        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+ 
+        return Massemin, Massemax
+        
+    def Liste_Massemin_Massemax(self, Liste_Lanbda):
+        Liste_Lanbda=np.array(Liste_Lanbda)
+        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+        Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        Liste_M=[self.Massemin_Massemax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_M_avec_nan = Liste_M.copy()
+        for i in sorted(indices_nan, reverse=True):
+            Liste_M_avec_nan.insert(i, (np.nan, np.nan))
+        Liste_M_avec_nan=np.array(Liste_M_avec_nan)
+        return Liste_M_avec_nan
+    
+    def Liste_Vitesse_Masse(self, Liste_lanbda):
+        Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
+        Vitesse=self.Vitesse_Masse(Liste_M)
+        return Vitesse
+
     def Masse(self, diametre):
         return (self.a*(diametre**self.b))
     
@@ -104,6 +165,21 @@ class Eq :
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
+    
+    def Liste_rho_r(self, Liste_N, Liste_lambda):
+        Liste_N=np.array(Liste_N)
+        Liste_lambda=np.array(Liste_lambda)
+        G_b=self.G(self.b)
+        Liste_rho_r=self.a*Liste_N*G_b*(Liste_lambda**(-self.b))
+        return Liste_rho_r
+
+    
+    def Calcul_Masse_Tot(self,liste_rho_r, hauteur_col):
+        liste_rho_r_sans_nan=np.array([x for x in liste_rho_r if not np.isnan(x)])
+        rho_tot=np.sum(liste_rho_r_sans_nan)
+        Masse_tot=rho_tot*hauteur_col
+        return Masse_tot
+    
 
 class Affichage :
 
