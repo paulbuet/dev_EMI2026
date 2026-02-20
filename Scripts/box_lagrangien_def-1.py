@@ -49,11 +49,13 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = 1,N=N)
+        condi_init = InitialCond(self.number_stitches,self.esp,nb_classes = 1)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
+
+        self.rho_r = condi_init.rho_r
 
         self.vec_bound = sorted(np.concatenate((self.vertical_boundaries,self.vertical_boundaries)))
 
@@ -63,63 +65,64 @@ class Model_bl():
 
         self.wat_flo_on_time=[0]  # List of this mass in time, here, time = 0 soit no precipitation
 
-        self.dz = self.grid0["level"].values[2]-self.grid0["level"].values[1]   # length of a stitch
+        dz = self.grid0["level"].values[2]-self.grid0["level"].values[1]   # length of a stitch
 
         if CFL == "Yes":
-            self.speed_max = self.dz / self.delta_t
+            self.speed_max = dz / self.delta_t
         else:
             self.speed_max = speed_max
-
+        
+        # On cazlcule la hauteur de l'interface la plus haute
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
-        self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
+        # On calcule la masse totale suivant le nombre de particule par mailles
+        self.list_mass = Eq(esp).liste_masse(self.grid0)
 
-        # speed is calculated
 
-        self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
+   def regridage(self,grid,variable,vec_bound,h_bot,stitch):
+        """
+        Cette fonction prends en entrée des variables qui lui permettent de regridder une maille déformée sur
+        le maillage régulier de départ de manière conservatif.
+
+        grid (type = dataset): dataset contenant les level en coordonées et la variable (masse/concentration) en data variables
+        variable (type = str): chaine de caractère pouvant être masse ou concentration suivant le critère de sédimentation
+        vec_bound (type  = list): liste d'interface supérieurs des mailles déformée 
+        h_bot (type = float): hauteur minimale atteinte une particule au sol avec la vitesse de chute maximale
+        stitch (type = int): numéro de la maille déformée observée
+
+        retourne la grille régulière avec des 0 partout sauf sur les mailles affectées par la maille déformée:
         
+        grid_i (type = dataset)
+        """
+        # On cherche l'épaisseur de la maille déformée
+        dz = (vec_bound[stitch*2+1]  - vec_bound[stitch*2]) /2
 
-   def mass(self,grid,var, diam):
-       return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
+        # Pour éviter les erreurs de regridage, on crée des mailles de même épaisseurs en dessous et au dessus
+        # On calcule ici leurs nombres
+        nb_stit_inf = (abs(h_bot)+ vec_bound[stitch*2]) // dz + 1
+        nb_stit_sup = (self.z_top_ref - vec_bound[stitch*2+1]) // dz + 1
 
-  
-   
-   def add_stitche(self,new_grid,diam):
-    
-        # We create new stitches above the new_grid to have a initially grid tottaly cover
+        # On crée ensuite la maille déformée totale
+        mesh_inf = UniformGrid1D(dz = dz,nx = nb_stit_inf,  origin = (vec_bound[i*2+1],))
+        mesh_sup = UniformGrid1D(dz = dz,nx = nb_stit_sup,  origin = (vec_bound[i*2+1],))
 
-        nb_stitche_create = 1
+        mesh_tot = mesh_inf + mesh_sup
 
-        z_mid_last_i = new_grid["level"].values[-1]    # height of the highest center of stitch
+        # On insère la valeur portée par la maille déformée dans la grille déformée
+        data = np.zeros(nb_stit_inf+nb_stit_sup)
+        data = np.insert(data,grid[variable].values[stitch],np.where(mesh_tot.cellCenters == vec_bound[stitch*2+1]-dz/2))
 
-        grid_add = np.sort(np.unique(np.append(new_grid["level"].values,z_mid_last_i+self.dz)))
+        # On crée le dataset avec les mailles déformée et leur valeur de variables associées
+        data_i = xr.Dataset(data_vars= dict(variable = ((level),data)), coords = {"level" : mesh_tot.cellCenters})
 
-        # We add this new stitch with 0 concentration to the dataset
+        # On regrid sur la maille non déformée
+        grid_i = data_i.regrid.conservative(self.grid0,time_dim=None)
 
-        new_grid = new_grid.reindex(level = grid_add)
+        # On densifie le vecteur 
+        grid_i[variable] = grid_i[variable].copy(data=grid_i[variable].data.todense())
 
-        new_grid[f"concentration_bin_{diam}"] = new_grid[f"concentration_bin_{diam}"].copy(data=new_grid[f"concentration_bin_{diam}"].data).fillna(0)
+        return grid_i
 
-        nb_stitche_create  += 1   # We add 1 to the number of stitch created to see if we need an other one
-
-
-        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are above the maximum level, we stop
-
-            z_mid_last_i = new_grid["level"].values[-1]  # New evaluation of the height of the highest center of stitch
-
-            """
-            ###SAME PROCESS###
-            """
-
-            grid_add = np.sort(np.unique(np.append(new_grid["level"].values,z_mid_last_i+self.dz)))
-
-            new_grid = new_grid.reindex(level = grid_add)
-
-            new_grid[f"concentration_bin_{diam}"] = new_grid[f"concentration_bin_{diam}"].copy(data=new_grid[f"concentration_bin_{diam}"].data).fillna(0)
-
-            nb_stitche_create  += 1
-
-        return new_grid
    
    def run(self):
         
@@ -128,56 +131,92 @@ class Model_bl():
         On enregistre le profils des concentration en fonction de la hauteur à chaque pas de temps
         """ 
         
+        # On initialise la concentration, la masse ainsi que les variables de stockage
+
+        grid_t_conc = self.grid0
+
+        grid_t_mass = self.grid0
+
+        rho_r_conc = self.rho_r
+        rho_r_mass = self.rho_r
+
+        # Les masses
+        Masse= round(Eq(esp).mass(rho_r_mass),4)  
+        list_mass_tot = [Masse]
         
-        grid_t = self.grid0
+        #Les précip
+        self.water_on_floor = 0               
+        wat_flo_tot = [self.water_on_floor]
+        self.wat_flo_on_time.append(sum(wat_flo_tot))
+
+        #Les data
+        list_data = [grid_t_conc["concentration"].values]
+        self.list_mass.append(grid_t_mass["masse"].values)
+        
+        
 
         for t in range(self.nb_step):
+            # On initialise aussi concentration et masse au pas de temps suivant
 
-            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
+            grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
+            grid_dt_mass = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
-            grid_dt = grid_dt.assign(**{"concentration":(("level",),np.zeros())})
+            # On calcule les lambda de chaque mailles 
 
-            self.new_vec_bound = self.vec_bound - self.speed * self.delta_t
+            list_lamb_conc = Eq(self.esp).Liste_Lanbda(rho_r_conc, grid_t_conc["concentration"].values)
+            list_lamb_mass = Eq(self.esp).Liste_Lanbda(rho_r_mass, grid_t_conc["masse"].values)
 
-            self.speed_max = np.max(self.speed)
+            # On initialise les lignes de valeurs à 0
 
-            height_bot = -self.speed_max * self.delta_t
+            grid_dt_conc = grid_dt_conc.assign(**{"concentration":(("level",),np.zeros())})
+            grid_dt_mass = grid_dt_mass.assign(**{"masse":(("level",),np.zeros())})
 
-            for i in range(self.number_stitches):
-                dz = (self.new_vec_bound[i*2+1]  - self.new_vec_bound[i*2]) /2
-                nb_stit_inf = (abs(height_bot)+self.new_vec_bound[i*2]) // dz + 1
-                nb_stit_sup = (self.z_top_ref - self.new_vec_bound[i*2+1]) // dz + 1
+            # On calcule les vitesses minimales et maximales de chaques mailles
+            self.speed_conc = Eq(self.esp).Vitesse
+            self.speed_max = Eq(self.esp).Vitesse
 
-                mesh_inf = UniformGrid1D(dz = dz,nx = nb_stit_inf,  origin = (self.new_vec_bound[i*2+1],))
-                mesh_sup = UniformGrid1D(dz = dz,nx = nb_stit_sup,  origin = (self.new_vec_bound[i*2+1],))
+            # On applique la vitesse respective des particules en fonction du critère pris (concentration/ masse)
+            new_vec_bound_conc = new_vec_bound_conc - self.speed_conc * self.delta_t
+            new_vec_bound_mass = new_vec_bound_mass - self.speed_mass * self.delta_t
 
-                mesh_tot = mesh_inf + mesh_sup
-
-                data = np.zeros(nb_stit_inf+nb_stit_sup)
-
-                data = np.insert(data,concentration,np.where(mesh_tot.cellCenters==self.new_vec_bound[i*2+1]-dz))
-
-                self.data_i = xr.Dataset(data_vars= data, coords = {"level" : mesh_tot.cellCenters})
-
-                grid_i = self.data_i.regrid.conservative(grid0,time_dim=None)
-
-                grid_i["concentration"] = grid_i["concentration"].copy(data=grid_i["concentration"].data.todense())
+            # On enregistre la hauteur minimale que peux atteindre un particule en concentration et en masse
+            self.speed_max_conc = np.max(self.speed_conc)
+            height_bot_conc = -self.speed_max_conc * self.delta_t
+            self.speed_max_mass = np.max(self.speed_mass)
+            height_bot_mass = -self.speed_max_mass * self.delta_t
 
 
-                grid_dt = grid_dt + grid_i
+            # On itère sur le nombre de mailles
+            for stitch in range(self.number_stitches):
+                
+                # On regride la maille déformée sur la maille de départ puis on ajoute ces valeurs à celles déjà calculées
+                grid_stit_conc = self.regridage(grid_t_conc,"concentration",new_vec_bound_conc,height_bot_conc,stitch)
+                grid_stit_mass = self.regridage(grid_t_mass,"masse",new_vec_bound_mass,height_bot_mass,stitch)
 
 
-            M0 = round(self.mass(grid_dt),3)
-            M1 = round(self.mass(grid_t),3)
-            
-            self.water_on_floor = M0-M1
+                grid_dt_conc = grid_dt_conc + grid_stit_conc
+                grid_dt_mass = grid_dt_mass + grid_stit_mass
 
-            list_data.append(grid_dt[f"concentration"].values)
+            # On recalcule notre profil de rho_r sur nos deux sédimentations
+            rho_r_conc = Eq(esp).List_rho_r(grid_dt_conc["concentration"].values,list_lamb_conc)
+            rho_r_mass = Eq(esp).List_rho_r(grid_dt_conc["masse"].values,list_lamb_mass)
+
+            # On calcule la masse de nos nouvelles grilles et on l'enregistre
+            Masse_dt= round(Eq(esp).mass(rho_r_mass),4)
+            list_mass_tot.append(Masse_dt)
+
+            #On s'occupe des précip
+            self.water_on_floor = list_mass_tot[-2] - Masse_dt
             wat_flo_tot.append(self.water_on_floor)
-            self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
-            self.list_data.append(list_data_bin)
-            grid_t = grid_dt.copy()
+
+            #On enregistre les dataset
+            list_data.append(grid_dt_conc["concentration"].values)
+            self.list_mass.append(grid_dt_mass["masse"].values)
+            
+            # On prends le nouveau dataset comme l'ancien
+            grid_t_conc = grid_dt_conc.copy()
+            grid_t_mass = grid_dt_mass.copy()
 
 
 
