@@ -28,7 +28,7 @@ class Model_bl():
 
         N = number_particules
 
-        self.length_sim = 200  # length of simulation in seconds
+        self.length_sim = 1000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -156,7 +156,7 @@ class Model_bl():
 
 
             for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
-
+                
                 # Sedimentation is processed
 
                 new_grid = self.advect_down(grid_t,self.speeds[diam-1],self.delta_t)
@@ -174,10 +174,13 @@ class Model_bl():
 
                
                 # We want to see how much rain touch the ground during the time step
-                M0 = round(self.mass(grid_t,f"concentration_bin_{diam}",diam),3)
-                M1 = round(self.mass(grid_on_old,f"concentration_bin_{diam}",diam),3)
+                M0 = float(f"{self.mass(grid_t,f"concentration_bin_{diam}",diam):.2e}")
+                M1 = float(f"{self.mass(grid_on_old,f"concentration_bin_{diam}",diam):.2e}")
+
+                print("M0 : ", M0, "   M1 : ", M1)
                 
                 self.water_on_floor = M0-M1
+                print("eau au sol (fichier box_lagrangien_vectorised.py) : ", self.water_on_floor)
 
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)

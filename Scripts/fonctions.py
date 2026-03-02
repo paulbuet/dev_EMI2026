@@ -102,7 +102,6 @@ class Eq :
         return (self.c*((M/self.a)**(self.d/self.b)))
 
     def Massemin_Massemax(self, lam):
- 
         def Fct(M):
             return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
  
@@ -183,13 +182,14 @@ class Eq :
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"  
+
+        # Concentration : Liste de liste [[maille bas, maille haut]0, ... [maille bas, maille haut]]
+
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
-        #time=np.linspace(1, Temps_simu, Temps_simu)
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        #print(Temps_simu, nb_boites)
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
@@ -198,7 +198,7 @@ class Affichage :
         plt.xlabel("Temps")
         plt.ylabel("Mailles du modèle")
         plt.colorbar()
-        plt.savefig(f"./fig/{model}/{typ}.png")
+        plt.savefig(f"../fig/{model}/{typ}.png")
         plt.show()
 
 
@@ -228,7 +228,7 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée")
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig(f"./fig/{model}/Précipitations.png")
+        plt.savefig(f"../fig/{model}/Précipitations.png")
         plt.show()
 
 
