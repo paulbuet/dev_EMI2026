@@ -82,7 +82,7 @@ class Eq :
         Liste_Lanbda=np.array(Liste_Lanbda)
         indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
-        Liste_Dm = [self.Dmin_Dmax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_Dm = [self.Dmin_Dmax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_Dm_avec_nan = Liste_Dm.copy()
         for i in sorted(indices_nan, reverse=True):
             Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
@@ -93,6 +93,7 @@ class Eq :
     def Liste_Vitesse_Concentration(self, Liste_Lanbda):
         Liste_Dm=self.Liste_Dmin_Dmax(Liste_Lanbda)
         Vitesse= self.a*(Liste_Dm**self.b)
+        return Vitesse
 
     def Gamma_Masse(self, M, lam):
         return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
@@ -118,7 +119,7 @@ class Eq :
         Liste_Lanbda=np.array(Liste_Lanbda)
         indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
-        Liste_M=[self.Massemin_Massemax(elem) for elem in Liste_Lanbda_sans_nan]
+        Liste_M=[self.Massemin_Massemax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_M_avec_nan = Liste_M.copy()
         for i in sorted(indices_nan, reverse=True):
             Liste_M_avec_nan.insert(i, (np.nan, np.nan))
