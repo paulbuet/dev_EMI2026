@@ -18,6 +18,7 @@ import f90nml
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
 
+
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
 
 
@@ -26,7 +27,7 @@ class Phyex():
     Generic class to call the different sedimentation schemes of PHYEX
     """
     def __init__(self, method, number_stitches, number_bin, number_particules,
-                 delta_t, speed_max, esp, CFL):
+                 delta_t, speed_max, esp, CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -42,7 +43,7 @@ class Phyex():
         self.esp = esp
 
         # Geometry and initial content
-        condi_init = InitialCond(self.number_stitches, esp, nb_classes=1, N=N, rho_r=1.E-5)
+        condi_init = InitialCond(self.number_stitches, esp, nb_classes=1, N=N, rho_r=1.E-5,mode=type_init)
         self.vertical_boundaries = condi_init.levels_boundaries
         self.levels = condi_init.grid
 
@@ -152,7 +153,7 @@ class Phyex():
                 if self.esp == spec:
                     PCT[i + 1] # r profile at the end of the timestep
 
-        return self.list_data,self.wat_flo_on_time,self.list_mass
+        return self.wat_flo_on_time,self.rho_r_profile
 
 
 class Eule(Phyex):

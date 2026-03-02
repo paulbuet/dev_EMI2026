@@ -3,13 +3,20 @@ from box_lagrangien_vectorised import Model_bl
 from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
-from phyex import Eule, Eule2, Stat
 import time
+from pathlib import Path
+import os, sys
+import matplotlib.pyplot as plt
 
 from fonctions import Affichage
 
 class distribution:
-    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL, efficiency_test, type_init):
+    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL, efficiency_test, type_init, path):
+
+        path_to_phyex = Path(path) / "PHYEX"
+        sys.path.append(str(path_to_phyex))
+        from phyex import Eule, Eule2, Stat
+
         if efficiency_test == "Yes" : 
             
             if model == "Box_Lagrangien":
@@ -80,12 +87,13 @@ class distribution:
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
                 print (cls)
-                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
+                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
                 model_config_bl = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
 
                 model_config.run()
 
                 print (f"{model_config.__dict__}")
                 print (f"{model_config_bl.__dict__}")
-                print(model_config.rho_r_profile)
-
+                stitch = np.linspace(0,model_config.number_stitches,number_stitches)
+                plt.plot(model_config.levels, model_config.rho_r_profile)
+                plt.show()
