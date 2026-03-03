@@ -18,11 +18,13 @@ from fonctions import Eq
 
 class Model_bl_def():
    
-   def __init__(self, number_stitches,time_step,speed_max,esp,CFL):
+   def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
+
+        self.nb_part = number_particules
 
         self.number_stitches = number_stitches
 
@@ -52,7 +54,7 @@ class Model_bl_def():
         self.grid0 = condi_init.data
 
         # On renomme la data variable du fait d'un seul bin
-        self.grid0["concentration"] = self.grid0["concentration_bin_1"].copy(data=self.grid0["concentration_bin_1"].data*50)
+        self.grid0["concentration"] = self.grid0["concentration_bin_1"].copy(data=self.grid0["concentration_bin_1"].data*self.nb_part)
         self.grid0 = self.grid0.drop_vars('concentration_bin_1')
 
         self.vertical_boundaries = condi_init.levels_boundaries
@@ -78,8 +80,12 @@ class Model_bl_def():
         # On cazlcule la hauteur de l'interface la plus haute
         self.z_top_ref = self.grid0["level"].values[-1] + dz/2
 
+        # On note la liste des tailles de mailles
+        self.dz = [self.grid0["level"].values[0]*2]+[self.grid0["level"].values[i+1] - self.grid0["level"].values[i] for i in range(len(self.grid0["level"].values)-1)]
 
-   def regridage(self,grid,variable,vec_bound,h_bot,stitch):
+
+
+   def regridage(self,grid,variable,vec_bound,h_bot,stitch,t):
         """
         Cette fonction prends en entrée des variables qui lui permettent de regridder une maille déformée sur
         le maillage régulier de départ de manière conservatif.
@@ -94,14 +100,19 @@ class Model_bl_def():
 
         grid_i (type = dataset)
         """
+
+        # On cherche l'épaisseur de la maille de départ
+        dz_dep = (self.vec_bound[stitch*2+1]  - self.vec_bound[stitch*2])
         # On cherche l'épaisseur de la maille déformée
         vec_bound = np.array(vec_bound)
-        dz = (vec_bound[stitch*2+1]  - vec_bound[stitch*2])
+        dz = vec_bound[stitch*2+1]  - vec_bound[stitch*2]
 
         # Pour éviter les erreurs de regridage, on crée des mailles de même épaisseurs en dessous et au dessus
         # On calcule ici leurs nombres
         nb_stit_inf = int((abs(h_bot)+ vec_bound[stitch*2]) // dz + 1)
-        nb_stit_sup = int((self.z_top_ref - vec_bound[stitch*2+1]) // dz + 2)
+        nb_stit_sup = int((self.z_top_ref - vec_bound[stitch*2+1]) // dz + 3) 
+
+        print(vec_bound)
 
 
 
@@ -114,10 +125,11 @@ class Model_bl_def():
         
         centre_inf = np.flip(np.array(mesh_inf.cellCenters[0]))
 
-        centre_tot = np.concatenate((centre_inf,np.array(mesh_sup.cellCenters[0])))
+        centre_tot = np.concatenate((centre_inf,np.array(mesh_sup.cellCenters[0])))-dz/2
+
         data = np.zeros(len(centre_tot)-1)
 
-        data = np.insert(data,stitch,grid[variable].values[stitch])
+        data = np.insert(data,nb_stit_inf,grid[variable].values[stitch])
 
         # On crée le dataset avec les mailles déformée et leur valeur de variables associées
         data_i = xr.Dataset(data_vars= dict(variable = (("level"),data)), coords = {"level" : centre_tot})
@@ -149,6 +161,9 @@ class Model_bl_def():
 
         rho_r_conc = self.rho_r
         rho_r_mass = self.rho_r
+        
+
+
 
         # Les masses
         Masse= round(self.eq.Calcul_Masse_Tot(rho_r_mass,self.z_top_ref),4)  
@@ -169,7 +184,7 @@ class Model_bl_def():
         
         
 
-        for t in range(3):
+        for t in range(self.nb_step):
             # On initialise aussi concentration et masse au pas de temps suivant
 
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
@@ -180,6 +195,7 @@ class Model_bl_def():
             list_lamb_conc = self.eq.Liste_Lanbda(rho_r_conc, grid_t_conc["concentration"].values)
             list_lamb_mass = self.eq.Liste_Lanbda(rho_r_mass, grid_t_mass["masse"].values)
 
+
             # On initialise les lignes de valeurs à 0
 
             grid_dt_conc = grid_dt_conc.assign(**{"concentration":(("level",),np.zeros(self.number_stitches))})
@@ -188,7 +204,6 @@ class Model_bl_def():
             # On calcule les vitesses minimales et maximales de chaques mailles
             self.speed_conc = self.eq.Liste_Vitesse_Concentration(list_lamb_conc)
             self.speed_mass = self.eq.Liste_Vitesse_Masse(list_lamb_mass)
-
             
 
             # On formate les vitesses trouvées
@@ -201,6 +216,7 @@ class Model_bl_def():
             new_vec_bound_conc = self.vec_bound - self.speed_conc * self.delta_t
             new_vec_bound_mass = self.vec_bound - self.speed_mass * self.delta_t
 
+
             # On enregistre la hauteur minimale que peux atteindre un particule en concentration et en masse
             self.speed_max_conc = np.max(self.speed_conc)
             height_bot_conc = -self.speed_max_conc * self.delta_t
@@ -212,19 +228,24 @@ class Model_bl_def():
             for stitch in range(self.number_stitches):
                 
                 # On regride la maille déformée sur la maille de départ puis on ajoute ces valeurs à celles déjà calculées
-                grid_stit_conc = self.regridage(grid_t_conc,"concentration",new_vec_bound_conc,height_bot_conc,stitch)
-                grid_stit_mass = self.regridage(grid_t_mass,"masse",new_vec_bound_mass,height_bot_mass,stitch)
+                grid_stit_conc = self.regridage(grid_t_conc,"concentration",new_vec_bound_conc,height_bot_conc,stitch,t)
+                grid_stit_mass = self.regridage(grid_t_mass,"masse",new_vec_bound_mass,height_bot_mass,stitch,t)
+                
+                
+                
 
 
                 grid_dt_conc = grid_dt_conc + grid_stit_conc
                 grid_dt_mass = grid_dt_mass + grid_stit_mass
 
-            # On recalcule notre profil de rho_r sur nos deux sédimentations
-            rho_r_conc = self.eq.Liste_rho_r(grid_dt_conc["concentration"].values,list_lamb_conc)
-            rho_r_mass = self.eq.Liste_rho_r(grid_dt_mass["masse"].values,list_lamb_mass)
 
-            # On calcule la masse de nos nouvelles grilles et on l'enregistre
-            Masse_dt= round(self.eq.Calcul_Masse_Tot(rho_r_mass,self.z_top_ref),4)
+            # On recalcule notre profil de rho_r sur nos deux sédimentations
+            rho_r_mass = self.eq.Liste_rho_r(grid_dt_mass["masse"].values,self.nb_part,Masse,self.dz)
+            rho_r_conc = self.eq.Liste_rho_r(grid_dt_conc["concentration"].values,self.nb_part,Masse,self.dz)
+
+
+            #On ajoute la somme de précip tombé
+            Masse_dt = sum(rho_r_mass*self.dz)
             list_mass_tot.append(Masse_dt)
 
             #On s'occupe des précip
@@ -239,10 +260,11 @@ class Model_bl_def():
             # On prends le nouveau dataset comme l'ancien
             grid_t_conc = grid_dt_conc.copy()
             grid_t_mass = grid_dt_mass.copy()
+
         
+        print(wat_flo_on_time)
         # On return les profils stockés pour l'affichage
 
-        print(grid_t_conc["concentration"].values,rho_r_mass,self.grid0)
 
         return list_data,wat_flo_on_time,list_mass 
 
