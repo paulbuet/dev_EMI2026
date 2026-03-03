@@ -74,6 +74,7 @@ class Eq :
         Liste_N=np.array(Liste_N)
         Ga=self.G(self.b)
         Liste_N = np.array([np.nan if x == 0 else x for x in Liste_N])
+        print(Liste_N)
         Liste_lanbda=(rho_r/(Liste_N*self.a*Ga))**(-1/self.b)
         Liste_lanbda = np.array([0 if x == np.nan else x for x in Liste_lanbda])
         return Liste_lanbda
@@ -84,9 +85,8 @@ class Eq :
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
         Liste_Dm = [self.Dmin_Dmax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_Dm_avec_nan = Liste_Dm.copy()
-        for i in sorted(indices_nan, reverse=True):
+        for i in indices_nan:
             Liste_Dm_avec_nan.insert(i, (np.nan, np.nan))
-        print(Liste_Dm_avec_nan)
         Liste_Dm_avec_nan=np.array(Liste_Dm_avec_nan)
         return Liste_Dm_avec_nan
 
@@ -119,9 +119,10 @@ class Eq :
         Liste_Lanbda=np.array(Liste_Lanbda)
         indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
+        print(self.Massemin_Massemax(14644)[::-1])
         Liste_M=[self.Massemin_Massemax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_M_avec_nan = Liste_M.copy()
-        for i in sorted(indices_nan, reverse=True):
+        for i in indices_nan:
             Liste_M_avec_nan.insert(i, (np.nan, np.nan))
         Liste_M_avec_nan=np.array(Liste_M_avec_nan)
         return Liste_M_avec_nan
@@ -149,8 +150,8 @@ class Eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
-        Dmax = brentq(lambda D: F(D) - 0.99, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.02, 0, D_high)
+        Dmax = brentq(lambda D: F(D) - 0.999, 0, D_high)
  
         return Dmin, Dmax
     
@@ -166,12 +167,9 @@ class Eq :
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
-    def Liste_rho_r(self, Liste_N, Liste_lambda):
-        Liste_N=np.array(Liste_N)
-        Liste_lambda=np.array(Liste_lambda)
-        G_b=self.G(self.b)
-        Liste_rho_r=self.a*Liste_N*G_b*(Liste_lambda**(-self.b))
-        return Liste_rho_r
+    def Liste_rho_r(self, Liste_nb,nb_part,masse,dz):
+        return np.array(Liste_nb)*masse/nb_part/dz
+        
 
     
     def Calcul_Masse_Tot(self,liste_rho_r, hauteur_col):
