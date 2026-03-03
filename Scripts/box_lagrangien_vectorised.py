@@ -28,7 +28,7 @@ class Model_bl():
 
         N = number_particules
 
-        self.length_sim = 1000  # length of simulation in seconds
+        self.length_sim = 2000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -177,10 +177,8 @@ class Model_bl():
                 M0 = float(f"{self.mass(grid_t,f"concentration_bin_{diam}",diam):.2e}")
                 M1 = float(f"{self.mass(grid_on_old,f"concentration_bin_{diam}",diam):.2e}")
 
-                print("M0 : ", M0, "   M1 : ", M1)
                 
                 self.water_on_floor = M0-M1
-                print("eau au sol (fichier box_lagrangien_vectorised.py) : ", self.water_on_floor)
 
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
