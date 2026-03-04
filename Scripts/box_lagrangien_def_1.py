@@ -28,7 +28,7 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 200  # length of simulation in seconds
+        self.length_sim = 2000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -155,7 +155,7 @@ class Model_bl_def():
             if stitch>=idx:
                 print(stitch)
                 print(grid_i[variable].values,sum(data_i["variable"].values)-sum(grid_i[variable].values),data_i["variable"].values)
-            grid_i[variable].values[stitch] += sum(data_i["variable"].values)-sum(grid_i[variable].values)
+            grid_i[variable].values *= sum(data_i["variable"].values)/sum(grid_i[variable].values)
             grid_i = grid_i.drop_vars("variable")
             if stitch>=idx:
                 print("hoho")
