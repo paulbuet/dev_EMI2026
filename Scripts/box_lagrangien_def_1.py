@@ -136,10 +136,10 @@ class Model_bl_def():
 
 
         if variable == "masse" and (t==0 or t==1 or t==2):
-            print(data[nb_stit_inf])
+            print(data1[nb_stit_inf])
 
         if variable == "masse" and (t==0 or t==1 or t==2):
-            print(data[nb_stit_inf])
+            print(data1[nb_stit_inf])
 
         # On regrid sur la maille non déformée
         grid_i = data_i.regrid.conservative(self.grid0)
