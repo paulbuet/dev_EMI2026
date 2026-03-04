@@ -241,6 +241,35 @@ class Affichage :
 def gaussienne (m, sigma,h):
         return (1/(sigma*np.sqrt(2*np.pi))) * exp (-1/2 * ((h-m)/sigma)**2)
 
+
+class profil_rho_r:
+
+    def __init__(self):
+
+        # On définit les constantes que l'on va utiliser
+
+        self.R = 287.058
+        self.exp_baro = 9.80665/(R*0.0065)
+
+        self.T0 = 288.150
+        self.P0 = 101325
+
+    def calcul(alt,r):
+        
+        T = self.T0 -0.0065 * alt
+
+        P = self.P0 * (T/self.T0)**(self.exp_baro)
+
+        rho = P/(self.R*T)
+
+        rho_r = rho * r
+
+        return rho_r
+
+
+
+
+
 class InitialCond :
     '''
     Class that poduces a dataset to initialize the sedimentation model, a type of initialization is used in a restricted area of the vertical gridding.
