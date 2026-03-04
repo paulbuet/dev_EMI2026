@@ -72,9 +72,9 @@ class distribution:
                         model_config = Model_bl_def(number_stitches,time_step,number_particules,speed_max,esp,CFL)
 
                         profil = model_config.run()
-                        concentration_formate = np.array(profil[0])#.sum(axis=1)  #Il est là le problème...
+                        concentration_formate = np.array(profil[0])
 
-                        mass_form = np.array(profil[2])#.sum(axis=1)
+                        mass_form = np.array(profil[2])
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
                         Affichage.Affichage_Concentration(mass_form, "masse", model)
                         Affichage.Affichage_Precipitation(profil[1], model)
