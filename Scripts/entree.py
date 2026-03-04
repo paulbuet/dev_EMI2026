@@ -93,6 +93,17 @@ def check_type_init(type_init):
     return type_init 
 
 
+def check_CFL(answer):
+    """
+    function that takes as input the answer for efficiency_test given by the user, checks its compliance, and returns an appropriate response
+    nothing if compliant, 
+    error message otherwise
+    """
+    if answer not in ['Yes','No']:
+        raise argparse.ArgumentTypeError(f"You have to answer if you want to use the CFL condition by Yes or No.")
+    return answer
+
+
 # We provide text to help the user enter their settings.
 
 parser = argparse.ArgumentParser(
@@ -114,7 +125,7 @@ parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (defo
 parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
 parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
-parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_deformable)
+parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_CFL)
 parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
 parser.add_argument('-e','--specie', help = "Pick an hydrometeor specie, accepted species are 'i', 's', 'g', 'r' or 'c'", default="r", type=check_specie)
 parser.add_argument('-f','--efficiency_test', help = "Used as a developpement tool to compare differents versions of the models (choose between Yes and No)", default="No", type=check_efficiency_test)
