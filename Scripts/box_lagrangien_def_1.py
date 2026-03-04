@@ -281,7 +281,7 @@ class Model_bl_def():
         # On return les profils stockés pour l'affichage
 
 
-        #return list_data,wat_flo_on_time,list_mass 
+        return list_data,wat_flo_on_time,list_mass 
 
 
 
