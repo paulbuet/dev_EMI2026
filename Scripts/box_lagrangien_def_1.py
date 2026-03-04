@@ -109,40 +109,59 @@ class Model_bl_def():
 
         # Pour éviter les erreurs de regridage, on crée des mailles de même épaisseurs en dessous et au dessus
         # On calcule ici leurs nombres
-        nb_stit_inf = int((abs(h_bot)+ vec_bound[stitch*2]) // dz + 1)
+        nb_stit_inf = int((abs(h_bot)+ vec_bound[stitch*2]) // dz + 2)
         nb_stit_sup = int((self.z_top_ref - vec_bound[stitch*2+1]) // dz + 3) 
 
 
+
+
         # On crée ensuite la maille déformée totale
-        mesh_inf = UniformGrid1D(dx = -dz,nx = nb_stit_inf,  origin = (vec_bound[stitch*2],))
-        mesh_sup = UniformGrid1D(dx = dz,nx = nb_stit_sup,  origin = (vec_bound[stitch*2],))
+        mesh_inf = UniformGrid1D(dx = -dz,nx = nb_stit_inf,  origin = (vec_bound[stitch*2]-dz/2,))
+        mesh_sup = UniformGrid1D(dx = dz,nx = nb_stit_sup,  origin = (vec_bound[stitch*2]-dz/2,))
 
 
         # On insère la valeur portée par la maille déformée dans la grille déformée
         
         centre_inf = np.flip(np.array(mesh_inf.cellCenters[0]))
 
-        centre_tot = np.concatenate((centre_inf,np.array(mesh_sup.cellCenters[0])))-dz/2
+        centre_tot = np.concatenate((centre_inf,np.array(mesh_sup.cellCenters[0])))
 
-        data = np.zeros(len(centre_tot)-1)
+        data1 = np.zeros(len(centre_tot)-1)
 
-        data = np.insert(data,nb_stit_inf,grid[variable].values[stitch])
+        data1 = np.insert(data1,nb_stit_inf,grid[variable].values[stitch])
+
 
         # On crée le dataset avec les mailles déformée et leur valeur de variables associées
-        data_i = xr.Dataset(data_vars= dict(variable = (("level"),data)), coords = {"level" : centre_tot})
+        data_i = xr.Dataset(data_vars= dict(variable = (("level"),data1)), coords = {"level" : centre_tot})
+
+
+        if variable == "masse" and (t==0 or t==1 or t==2):
+            print(data[nb_stit_inf])
 
         if variable == "masse" and (t==0 or t==1 or t==2):
             print(data[nb_stit_inf])
 
         # On regrid sur la maille non déformée
-        grid_i = data_i.regrid.conservative(self.grid0,time_dim=None)
+        grid_i = data_i.regrid.conservative(self.grid0)
+
+        
 
         # On densifie le vecteur 
         grid_i[variable] = grid_i["variable"].copy(data=grid_i["variable"].data.todense())
-        grid_i = grid_i.drop_vars("variable")
-        
 
+        try:
+            idx = np.where(grid_i[variable].values !=0)[0][0]
 
+            if stitch>=idx:
+                print(stitch)
+                print(grid_i[variable].values,sum(data_i["variable"].values)-sum(grid_i[variable].values),data_i["variable"].values)
+            grid_i[variable].values[stitch] += sum(data_i["variable"].values)-sum(grid_i[variable].values)
+            grid_i = grid_i.drop_vars("variable")
+            if stitch>=idx:
+                print("hoho")
+                print(grid_i[variable].values)
+        except:
+            grid_i = grid_i.drop_vars("variable")
         return grid_i
 
    
@@ -184,7 +203,7 @@ class Model_bl_def():
         
         
 
-        for t in range(self.nb_step):
+        for t in range(6):
             # On initialise aussi concentration et masse au pas de temps suivant
 
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
@@ -193,7 +212,8 @@ class Model_bl_def():
 
             # On calcule les lambda de chaque mailles 
 
-            list_lamb_conc = self.eq.Liste_Lanbda(rho_r_conc, grid_t_conc["concentration"].values)
+
+            list_lamb_conc = self.eq.Liste_Lanbda(rho_r_conc*10000, grid_t_conc["concentration"].values)
             list_lamb_mass = self.eq.Liste_Lanbda(rho_r_mass, grid_t_mass["masse"].values)
 
 
@@ -202,9 +222,11 @@ class Model_bl_def():
             grid_dt_conc = grid_dt_conc.assign(**{"concentration":(("level",),np.zeros(self.number_stitches))})
             grid_dt_mass = grid_dt_mass.assign(**{"masse":(("level",),np.zeros(self.number_stitches))})
 
+
             # On calcule les vitesses minimales et maximales de chaques mailles
             self.speed_conc = self.eq.Liste_Vitesse_Concentration(list_lamb_conc)
             self.speed_mass = self.eq.Liste_Vitesse_Masse(list_lamb_mass)
+            
             
 
             # On formate les vitesses trouvées
@@ -212,6 +234,7 @@ class Model_bl_def():
             self.speed_conc = np.nan_to_num(np.array(self.speed_conc).flatten())
             self.speed_mass = np.nan_to_num(np.array(self.speed_mass).flatten())
 
+            
             
             # On applique la vitesse respective des particules en fonction du critère pris (concentration/ masse)
             new_vec_bound_conc = self.vec_bound - self.speed_conc * self.delta_t
@@ -229,6 +252,7 @@ class Model_bl_def():
 
 
             # On itère sur le nombre de mailles
+
             for stitch in range(self.number_stitches):
                 
                 # On regride la maille déformée sur la maille de départ puis on ajoute ces valeurs à celles déjà calculées
@@ -269,11 +293,11 @@ class Model_bl_def():
             grid_t_mass = grid_dt_mass.copy()
 
         
-        print(wat_flo_on_time)
+        print(list_mass_tot)
         # On return les profils stockés pour l'affichage
 
 
-        return list_data,wat_flo_on_time,list_mass 
+        #return list_data,wat_flo_on_time,list_mass 
 
 
 
