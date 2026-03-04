@@ -28,7 +28,7 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 2000  # length of simulation in seconds
+        self.length_sim = 3000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -134,13 +134,6 @@ class Model_bl_def():
         # On crée le dataset avec les mailles déformée et leur valeur de variables associées
         data_i = xr.Dataset(data_vars= dict(variable = (("level"),data1)), coords = {"level" : centre_tot})
 
-
-        if variable == "masse" and (t==0 or t==1 or t==2):
-            print(data1[nb_stit_inf])
-
-        if variable == "masse" and (t==0 or t==1 or t==2):
-            print(data1[nb_stit_inf])
-
         # On regrid sur la maille non déformée
         grid_i = data_i.regrid.conservative(self.grid0)
 
@@ -154,12 +147,14 @@ class Model_bl_def():
 
             if stitch>=idx:
                 print(stitch)
-                print(grid_i[variable].values,sum(data_i["variable"].values)-sum(grid_i[variable].values),data_i["variable"].values)
-            grid_i[variable].values *= sum(data_i["variable"].values)/sum(grid_i[variable].values)
+                print()
+            self.coef=sum(data_i["variable"].values)/sum(grid_i[variable].values)
+            grid_i[variable].values *= self.coef
             grid_i = grid_i.drop_vars("variable")
+            print("Salut c'est moi :         ", stitch, idx)
             if stitch>=idx:
-                print("hoho")
-                print(grid_i[variable].values)
+                print()
+
         except:
             grid_i = grid_i.drop_vars("variable")
         return grid_i
@@ -201,9 +196,8 @@ class Model_bl_def():
         grid_t_mass["masse"] = grid_t_mass["concentration"].copy(data=grid_t_mass["concentration"].data)
         grid_t_mass = grid_t_mass.drop_vars('concentration')
         
-        
 
-        for t in range(6):
+        for t in range(self.nb_step):
             # On initialise aussi concentration et masse au pas de temps suivant
 
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
@@ -247,10 +241,6 @@ class Model_bl_def():
             self.speed_max_mass = np.max(self.speed_mass)
             height_bot_mass = -self.speed_max_mass * self.delta_t
 
-            print("ici, concentration actuelle : ", "     :         ", (sum(grid_t_conc["concentration"].values)))
-            print("ici, Masse actuelle : ", "     :         ", (sum(grid_t_mass["masse"].values)))
-
-
             # On itère sur le nombre de mailles
 
             for stitch in range(self.number_stitches):
@@ -262,12 +252,10 @@ class Model_bl_def():
                 grid_dt_conc["concentration"] = grid_dt_conc["concentration"].copy(data=grid_dt_conc["concentration"].data+grid_stit_conc["concentration"].values)
                 grid_dt_mass["masse"] = grid_dt_mass["masse"].copy(data=grid_dt_mass["masse"].data+grid_stit_mass["masse"].values)
                 #grid_dt_conc = grid_dt_conc["concentration"].values + grid_stit_conc["concentration"].values
-                #grid_dt_mass = grid_dt_mass + grid_stit_mass
-
-
-
-            print("ici, après regridage  ", "     :         ", (sum(grid_dt_conc["concentration"].values)))
-            print("ici, après regridage  ", "     :         ", (sum(grid_dt_mass["masse"].values)))
+                #grid_dt_mass = grid_dt_mass + 
+                
+            grid_dt_conc["concentration"][0]*=self.coef
+            grid_dt_mass["masse"][0]*=self.coef
 
 
             # On recalcule notre profil de rho_r sur nos deux sédimentations
@@ -280,9 +268,11 @@ class Model_bl_def():
             list_mass_tot.append(Masse_dt)
 
             #On s'occupe des précip
+            
             water_on_floor = list_mass_tot[-2] - Masse_dt
             wat_flo_tot.append(water_on_floor)
             wat_flo_on_time.append(sum(wat_flo_tot))
+
 
             #On enregistre les dataset
             list_data.append(grid_dt_conc["concentration"].values)
@@ -293,11 +283,10 @@ class Model_bl_def():
             grid_t_mass = grid_dt_mass.copy()
 
         
-        print(list_mass_tot)
         # On return les profils stockés pour l'affichage
 
 
-        return list_data,wat_flo_on_time,list_mass 
+        return list_data,wat_flo_tot,list_mass 
 
 
 
