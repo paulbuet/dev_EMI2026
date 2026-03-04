@@ -102,7 +102,6 @@ class Eq :
         return (self.c*((M/self.a)**(self.d/self.b)))
 
     def Massemin_Massemax(self, lam):
- 
         def Fct(M):
             return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
  
@@ -181,22 +180,23 @@ class Eq :
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"  
+
+        # Concentration : Liste de liste [[maille bas, maille haut]0, ... [maille bas, maille haut]]
+
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
-        #time=np.linspace(1, Temps_simu, Temps_simu)
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        #print(Temps_simu, nb_boites)
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         plt.pcolormesh(Transpose,cmap=reversed_map)
-        plt.title(f"Evolution de la {typ} de particules dans le temps")
-        plt.xlabel("Temps")
-        plt.ylabel("Mailles du modèle")
+        plt.title(f"Evolution de la {typ} de particules dans le temps", fontsize=22)
+        plt.xlabel("Temps", fontsize=18)
+        plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        plt.savefig(f"./fig/{model}/{typ}.png")
+        plt.savefig(f"../fig/{model}/{typ}.png")
         plt.show()
 
 
@@ -213,20 +213,25 @@ class Affichage :
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.yaxis.set_major_locator(MultipleLocator(1))
+        ax.set_xlim(left=0)
+        x_max = len(Precip)-1
+        ticks = np.linspace(0, x_max, 11)
+        ax.set_xticks(ticks)
+        ax.set_xticklabels([f"{t:.2f}" for t in ticks])
         ax.yaxis.set_major_locator(MaxNLocator(10))
 
         time=np.linspace(1, len(Precip), len(Precip))
         time2 = time -(time[1]-time[0])/2
-        ax1.bar(time2, Precip, color="blue", label="Précip_par_pas_de_temps")
-        ax1.set_xlabel("temps")
-        ax1.set_ylabel("Cumul")
+        ax1.bar(time2, Precip, color="blue", label="Cumul")
+        ax1.set_xlabel("temps", fontsize=18)
+        ax1.set_ylabel("Précip par pas de temps", fontsize=18)
         ax2 = ax1.twinx()
-        ax2.plot(time, Cumul, '--', color="red", label="Cumul")
-        ax2.set_ylabel('Précip_par_pas_de_temps')
-        plt.title("Evolution des précipitations par pas de temps et cumulée")
+        ax2.plot(time, Cumul, '--', color="red", label="Précip par pas de temps")
+        ax2.set_ylabel('Cumul', fontsize=18)
+        plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig(f"./fig/{model}/Précipitations.png")
+        plt.savefig(f"../fig/{model}/Précipitations.png")
         plt.show()
 
 

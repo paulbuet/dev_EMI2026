@@ -135,6 +135,12 @@ class Model_bl_def():
         data_i = xr.Dataset(data_vars= dict(variable = (("level"),data1)), coords = {"level" : centre_tot})
 
 
+        if variable == "masse" and (t==0 or t==1 or t==2):
+            print(data[nb_stit_inf])
+
+        if variable == "masse" and (t==0 or t==1 or t==2):
+            print(data[nb_stit_inf])
+
         # On regrid sur la maille non déformée
         grid_i = data_i.regrid.conservative(self.grid0)
 
@@ -203,6 +209,7 @@ class Model_bl_def():
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
             grid_dt_mass = xr.Dataset(data_vars={}, coords = {"level" : grid_t_mass["level"]})
 
+
             # On calcule les lambda de chaque mailles 
 
 
@@ -240,6 +247,9 @@ class Model_bl_def():
             self.speed_max_mass = np.max(self.speed_mass)
             height_bot_mass = -self.speed_max_mass * self.delta_t
 
+            print("ici, concentration actuelle : ", "     :         ", (sum(grid_t_conc["concentration"].values)))
+            print("ici, Masse actuelle : ", "     :         ", (sum(grid_t_mass["masse"].values)))
+
 
             # On itère sur le nombre de mailles
 
@@ -249,9 +259,15 @@ class Model_bl_def():
                 grid_stit_conc = self.regridage(grid_t_conc,"concentration",new_vec_bound_conc,height_bot_conc,stitch,t)
                 grid_stit_mass = self.regridage(grid_t_mass,"masse",new_vec_bound_mass,height_bot_mass,stitch,t)
                 
-                
-                grid_dt_conc = grid_dt_conc + grid_stit_conc
-                grid_dt_mass = grid_dt_mass + grid_stit_mass
+                grid_dt_conc["concentration"] = grid_dt_conc["concentration"].copy(data=grid_dt_conc["concentration"].data+grid_stit_conc["concentration"].values)
+                grid_dt_mass["masse"] = grid_dt_mass["masse"].copy(data=grid_dt_mass["masse"].data+grid_stit_mass["masse"].values)
+                #grid_dt_conc = grid_dt_conc["concentration"].values + grid_stit_conc["concentration"].values
+                #grid_dt_mass = grid_dt_mass + grid_stit_mass
+
+
+
+            print("ici, après regridage  ", "     :         ", (sum(grid_dt_conc["concentration"].values)))
+            print("ici, après regridage  ", "     :         ", (sum(grid_dt_mass["masse"].values)))
 
 
             # On recalcule notre profil de rho_r sur nos deux sédimentations

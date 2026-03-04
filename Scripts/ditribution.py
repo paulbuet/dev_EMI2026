@@ -55,9 +55,8 @@ class distribution:
         else : 
             
             if model == "Box_Lagrangien":
-                if type_advance == "Step_By_Step":
-                    
-                    if deformable == "No":
+                if type_advance == "Step_By_Step":                    
+                    if deformable == "No":     #  Par défaut on arrive ici.
 
                         model_config = Model_bl(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
 
@@ -65,6 +64,7 @@ class distribution:
                         concentration_formate = np.array(profil[0]).sum(axis=1)
 
                         mass_form = np.array(profil[2]).sum(axis=1)
+
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
                         Affichage.Affichage_Concentration(mass_form, "masse", model)
                         Affichage.Affichage_Precipitation(profil[1], model)

@@ -27,7 +27,7 @@ class Model_bl():
 
         N = number_particules
 
-        self.length_sim = 200  # length of simulation in seconds
+        self.length_sim = 1000  # length of simulation in seconds
 
         self.delta_t = delta_t # length of time step in seconds
 
@@ -180,7 +180,6 @@ class Model_bl():
                 M1 = round(self.mass(grid_on_old,f"concentration_bin_{diam}",diam),3)
                 
                 self.water_on_floor = M0-M1
-
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
