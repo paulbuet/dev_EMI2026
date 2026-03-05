@@ -101,6 +101,8 @@ class Model_bl_def():
         grid_i (type = dataset)
         """
 
+        
+
         # On cherche l'épaisseur de la maille de départ
         dz_dep = (self.vec_bound[stitch*2+1]  - self.vec_bound[stitch*2])
         # On cherche l'épaisseur de la maille déformée
@@ -137,7 +139,14 @@ class Model_bl_def():
         # On regrid sur la maille non déformée
         grid_i = data_i.regrid.conservative(self.grid0)
 
-        
+        if vec_bound[stitch*2]<0:
+            grid_sol = xr.Dataset(coords = {"level" : [vec_bound[stitch*2+1],0]})
+            nb_sedim = data_i.regrid.conservative(grid_sol)
+
+            somme_tombe = sum(nb_sedim["variable"].copy(data=nb_sedim["variable"].data.todense()))
+
+        else:
+            somme_tombe = 0
 
         # On densifie le vecteur 
         grid_i[variable] = grid_i["variable"].copy(data=grid_i["variable"].data.todense())
@@ -145,16 +154,9 @@ class Model_bl_def():
         try:
             idx = np.where(grid_i[variable].values !=0)[0][0]
 
-            if stitch>=idx:
-                print(stitch)
-                print()
-            self.coef=sum(data_i["variable"].values)/sum(grid_i[variable].values)
-            grid_i[variable].values *= self.coef
+            grid_i[variable].values *= (sum(data_i["variable"].values)-somme_tombe)/sum(grid_i[variable].values)
             grid_i = grid_i.drop_vars("variable")
-            print("Salut c'est moi :         ", stitch, idx)
-            if stitch>=idx:
-                print()
-
+            
         except:
             grid_i = grid_i.drop_vars("variable")
         return grid_i
@@ -196,8 +198,9 @@ class Model_bl_def():
         grid_t_mass["masse"] = grid_t_mass["concentration"].copy(data=grid_t_mass["concentration"].data)
         grid_t_mass = grid_t_mass.drop_vars('concentration')
         
+        
 
-        for t in range(self.nb_step):
+        for t in range(6):
             # On initialise aussi concentration et masse au pas de temps suivant
 
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
@@ -241,6 +244,7 @@ class Model_bl_def():
             self.speed_max_mass = np.max(self.speed_mass)
             height_bot_mass = -self.speed_max_mass * self.delta_t
 
+
             # On itère sur le nombre de mailles
 
             for stitch in range(self.number_stitches):
@@ -252,10 +256,9 @@ class Model_bl_def():
                 grid_dt_conc["concentration"] = grid_dt_conc["concentration"].copy(data=grid_dt_conc["concentration"].data+grid_stit_conc["concentration"].values)
                 grid_dt_mass["masse"] = grid_dt_mass["masse"].copy(data=grid_dt_mass["masse"].data+grid_stit_mass["masse"].values)
                 #grid_dt_conc = grid_dt_conc["concentration"].values + grid_stit_conc["concentration"].values
-                #grid_dt_mass = grid_dt_mass + 
-                
-            grid_dt_conc["concentration"][0]*=self.coef
-            grid_dt_mass["masse"][0]*=self.coef
+                #grid_dt_mass = grid_dt_mass + grid_stit_mass
+
+
 
 
             # On recalcule notre profil de rho_r sur nos deux sédimentations
@@ -268,11 +271,9 @@ class Model_bl_def():
             list_mass_tot.append(Masse_dt)
 
             #On s'occupe des précip
-            
             water_on_floor = list_mass_tot[-2] - Masse_dt
             wat_flo_tot.append(water_on_floor)
             wat_flo_on_time.append(sum(wat_flo_tot))
-
 
             #On enregistre les dataset
             list_data.append(grid_dt_conc["concentration"].values)
@@ -286,7 +287,7 @@ class Model_bl_def():
         # On return les profils stockés pour l'affichage
 
 
-        return list_data,wat_flo_tot,list_mass 
+        return list_data,wat_flo_on_time,list_mass 
 
 
 
