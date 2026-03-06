@@ -95,34 +95,79 @@ class Eq :
         return Vitesse
 
     def Gamma_Masse(self, M, lam):
-        return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
+        if M <= 0:
+            return 0.0
+        x = (M/self.a)**(1/self.b)
+        log_val = ((1/self.b)-1)*np.log(M/self.a) - np.log(self.a*self.b)
+        return np.exp(log_val) * self.Gamma(x, lam)
+    
+    def Massemin_Massemax(self, lam):
+        # fonction de répartition via changement de variable
+        def Fct(M):
+            if M <= 0:
+                return 0.0
+            x = (M/self.a)**(1/self.b)
+            return quad(lambda t: self.Gamma(t, lam), 0, x)[0]
+    
+        # échelle naturelle
+        x_high = 1/lam
+        while quad(lambda t: self.Gamma(t, lam), 0, x_high)[0] < 0.999:
+            x_high *= 2
+    
+        M_high = self.a * x_high**self.b
+    
+        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+        return Massemin, Massemax
+    
 
     def Vitesse_Masse(self, M):
         return (self.c*((M/self.a)**(self.d/self.b)))
-
+    
+    
+    """
     def Massemin_Massemax(self, lam):
         def Fct(M):
             return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
- 
+        print("intégrale :    ", quad(self.Gamma_Masse, 0, np.inf, args=(lam)))
+        print("lambda  :    ", lam)
         M_high = 1/lam
-        while Fct(M_high) < 0.999:
+        while Fct(M_high) < 0.9:
             M_high *= 2
         Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
         Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
- 
+    
         return Massemin, Massemax
-        
+    """
     def Liste_Massemin_Massemax(self, Liste_Lanbda):
+
         Liste_Lanbda=np.array(Liste_Lanbda)
-        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+
+        mask_nan=np.isnan(Liste_Lanbda)
+        Liste_M=np.full((len(Liste_Lanbda), 2), np.nan)
+
+        for i, lam in enumerate(Liste_Lanbda):
+            if not np.isnan(lam):
+                mmin, mmax=self.Massemin_Massemax(lam)
+                Liste_M[i]=[mmax, mmin]
+
+        return Liste_M
+        
+
+        """"
+        indices_nan = np.where(np.isnan(Liste_Lanbda), 0, Liste_Lanbda)
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
         Liste_M=[self.Massemin_Massemax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_M_avec_nan = Liste_M.copy()
         for i in indices_nan:
             Liste_M_avec_nan.insert(i, (np.nan, np.nan))
         Liste_M_avec_nan=np.array(Liste_M_avec_nan)
+        print("ça c'est la liste masse min masse max", Liste_M_avec_nan)
         return Liste_M_avec_nan
-    
+        """
+
+
+
     def Liste_Vitesse_Masse(self, Liste_lanbda):
         Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
         Vitesse=self.Vitesse_Masse(Liste_M)
