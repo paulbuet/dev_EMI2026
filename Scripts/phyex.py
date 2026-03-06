@@ -48,6 +48,7 @@ class Phyex():
         self.levels = condi_init.grid
 
         self.rho_r_profile = condi_init.rho_r_profile
+        self.concentration_profile = condi_init.concentration_profile
 
         # Initialisation of variables
         self.water_on_floor = 0.  # Mass of water wich has touched the ground
@@ -109,9 +110,13 @@ class Phyex():
         KRR = 6
         PRT = numpy.ndarray((KRR, NKT, NIJT))
         PCT = numpy.ndarray((KRR, NKT, NIJT))
+        print (PRT)
+        print (KRR)
         for k in range(KRR):
             PRT[k] = self.rho_r_profile.reshape((NKT, 1))
-            PCT[k] = numpy.zeros((NKT, NIJT))       ### Should be the N profile
+            N_profile = numpy.array(self.concentration_profile).reshape(NKT,1)
+            print (numpy.shape(numpy.array(self.concentration_profile).reshape(NKT,1)))
+            PCT[k] = N_profile   ### Should be the N profile
         PRS = PRT / self.delta_t
         PCS = PCT / self.delta_t
         PQCT = PQRT = PQIT = PQST = PQGT = numpy.zeros((NKT, NIJT))
@@ -152,8 +157,9 @@ class Phyex():
             for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
                 if self.esp == spec:
                     PCT[i + 1] # r profile at the end of the timestep
+        self.r_profile = PCT
 
-        return self.wat_flo_on_time,self.rho_r_profile
+        return self.wat_flo_on_time,self.rho_r_profile, self.r_profile
 
 
 class Eule(Phyex):

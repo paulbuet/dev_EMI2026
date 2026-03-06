@@ -210,7 +210,8 @@ class InitialCond :
             concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
         self.rho_r_profile = np.array(concentration_profile) * rho_r
-
+        self.concentration_profile = concentration_profile
+        
         eq=Eq(esp)
         lam = eq.Lanbda (rho_r, N)
         dmin, dmax = eq.Dmin_Dmax(lam)
