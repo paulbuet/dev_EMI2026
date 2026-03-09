@@ -18,6 +18,7 @@ import f90nml
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
 
+
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
 
 
@@ -26,7 +27,7 @@ class Phyex():
     Generic class to call the different sedimentation schemes of PHYEX
     """
     def __init__(self, method, number_stitches, number_bin, number_particules,
-                 delta_t, speed_max, esp, CFL):
+                 delta_t, speed_max, esp, CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -42,11 +43,12 @@ class Phyex():
         self.esp = esp
 
         # Geometry and initial content
-        condi_init = InitialCond(self.number_stitches, esp, nb_classes=1, N=N, rho_r=1.E-5)
+        condi_init = InitialCond(self.number_stitches, esp, nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
         self.vertical_boundaries = condi_init.levels_boundaries
         self.levels = condi_init.grid
 
         self.rho_r_profile = condi_init.rho_r_profile
+        self.concentration_profile = condi_init.concentration_profile
 
         # Initialisation of variables
         self.water_on_floor = 0.  # Mass of water wich has touched the ground
@@ -110,22 +112,28 @@ class Phyex():
         PCT = numpy.ndarray((KRR, NKT, NIJT))
         for k in range(KRR):
             PRT[k] = self.rho_r_profile.reshape((NKT, 1))
-            PCT[k] = numpy.zeros((NKT, NIJT))       ### Should be the N profile
+            N_profile = numpy.array(self.concentration_profile).reshape(NKT,1)
+            #print (numpy.shape(numpy.array(self.concentration_profile).reshape(NKT,1)))
+            PCT[k] = N_profile   ### Should be the N profile
         PRS = PRT / self.delta_t
         PCS = PCT / self.delta_t
         PQCT = PQRT = PQIT = PQST = PQGT = numpy.zeros((NKT, NIJT))
         PQCS = PQRS = PQIS = PQSS = PQGS = PEFIELDW = numpy.zeros((NKT, NIJT))
         PCONC3D = numpy.zeros((NKT, NIJT))
+
+        r_profile = []
+        ct_profile = []
+
         for _ in range(self.nb_step):
             inst = numpy.zeros((KRR, NIJT))
             if self.ccloud == 'LIMA':
-                for i, spec in enumerate(['rc', 'rr', 'ri', 'rs', 'rg']):
+                for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
                     # PCT/PRT/PCS/PRS are declared with KRR (first index is for vapor)
                     # cloud (i=0) is the second array, indexed 1 in python and 2 in FORTRAN
                     KISHAPE = 1
                     result = PYLIMA_SEDIMENTATION(NIJT, NKT, 1, 0,
-                                                  'L' if spec in ('rc', 'rr') else 'I',
-                                                  self.nml['NAM_PARAM_LIMA'][f'NMOM_{spec[1].upper()}'],
+                                                  'L' if spec in ('c', 'r') else 'I',
+                                                  self.nml['NAM_PARAM_LIMA'][f'NMOM_{spec.upper()}'],
                                                   i + 2, KISHAPE, 0, self.delta_t, False, dzz,
                                                   PRHODREF, 0., P, T, numpy.zeros((NKT, NIJT)),
                                                   numpy.zeros((NKT, NIJT)), PRS[i + 1], PCS[i+ 1],
@@ -134,6 +142,9 @@ class Phyex():
                     (_, _, _, PRS[i + 1], PCS[i + 1], inst[i + 1], _) = result
                     PCT[i + 1] = PCS[i + 1] * self.delta_t
                     PRT[i + 1] = PRS[i + 1] * self.delta_t
+                    if self.esp == spec :
+                        r_profile.append(PRT[i+1, :, 0])
+                        ct_profile.append(PCT[i+1, :,0])
             else:
                 result = PYICE4_SEDIMENTATION(NIJT, NKT, 1, 0, False, False, self.delta_t, KRR,
                                               dzz, 0., PLVFACT, PLSFACT,
@@ -148,11 +159,23 @@ class Phyex():
                 (PTHS, PRS, inst[1], inst[2], inst[3],
                  inst[4], _, _, _, _, _) = result
                 PRT = PRS * self.delta_t
-            for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
-                if self.esp == spec:
-                    PCT[i + 1] # r profile at the end of the timestep
+                for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
+                    if self.esp == spec:
+                        PCT[i + 1] = PRT[i+1] # r profile at the end of the timestep
+                        r_profile.append(PRT[i+1, :, 0])
+                        ct_profile.append(PCT[i+1, :, 0])
+                        
+        #print (f"{i} : PCT {PCT[0]} ")
+        #print(len(PRT[0]))
+        #print(PRT[0][0])
+        #print(PRT[0][0][0])
+        #print(f"inst{inst}")
+        #print(self.nb_step)
 
-        return self.list_data,self.wat_flo_on_time,self.list_mass
+        self.r_profile = r_profile
+        self.ct_profile = ct_profile
+
+        return self.wat_flo_on_time,self.rho_r_profile, self.r_profile, self.ct_profile
 
 
 class Eule(Phyex):
