@@ -18,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl_def():
    
-   def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL, lenght_sim):
+   def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL, mode, lenght_sim):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -28,7 +28,8 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = lenght_sim  # length of simulation in seconds
+        self.length_sim = 3000  # length of simulation in seconds
+        
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -49,12 +50,12 @@ class Model_bl_def():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,esp,nb_classes = 1)
+        condi_init = InitialCond(number_stitches, esp, "bulk", mode = mode, r = 0.00001, N = number_particules)
    
         self.grid0 = condi_init.data
 
         # On renomme la data variable du fait d'un seul bin
-        self.grid0["concentration"] = self.grid0["concentration_bin_1"].copy(data=self.grid0["concentration_bin_1"].data*self.nb_part)
+        self.grid0["concentration"] = self.grid0["concentration_bin_1"].copy(data=self.grid0["concentration_bin_1"].data)
         self.grid0 = self.grid0.drop_vars('concentration_bin_1')
 
         self.vertical_boundaries = condi_init.levels_boundaries
@@ -111,7 +112,7 @@ class Model_bl_def():
 
         # Pour éviter les erreurs de regridage, on crée des mailles de même épaisseurs en dessous et au dessus
         # On calcule ici leurs nombres
-        nb_stit_inf = int((abs(h_bot)+ vec_bound[stitch*2]) // dz + 2)
+        nb_stit_inf = int((abs(h_bot)+ vec_bound[stitch*2]) // dz + 3)
         nb_stit_sup = int((self.z_top_ref - vec_bound[stitch*2+1]) // dz + 3) 
 
 
@@ -138,23 +139,20 @@ class Model_bl_def():
 
         # On regrid sur la maille non déformée
         grid_i = data_i.regrid.conservative(self.grid0)
-
+        
         if vec_bound[stitch*2]<0:
-            grid_sol = xr.Dataset(coords = {"level" : [vec_bound[stitch*2+1],0]})
-            nb_sedim = data_i.regrid.conservative(grid_sol)
-
-            somme_tombe = sum(nb_sedim["variable"].copy(data=nb_sedim["variable"].data.todense()))
+            somme_tombe = (abs(vec_bound[stitch*2])-max(-vec_bound[stitch*2+1],0))/dz*sum(data_i["variable"].values)
 
         else:
             somme_tombe = 0
-
+            
         # On densifie le vecteur 
         grid_i[variable] = grid_i["variable"].copy(data=grid_i["variable"].data.todense())
 
         try:
             idx = np.where(grid_i[variable].values !=0)[0][0]
 
-            grid_i[variable].values *= (sum(data_i["variable"].values)-somme_tombe)/sum(grid_i[variable].values)
+            grid_i[variable].values *= (sum(data_i["variable"].values))/sum(grid_i[variable].values)
             grid_i = grid_i.drop_vars("variable")
             
         except:
@@ -182,7 +180,7 @@ class Model_bl_def():
 
 
         # Les masses
-        Masse= round(self.eq.Calcul_Masse_Tot(rho_r_mass,self.z_top_ref),4)  
+        Masse= sum(rho_r_mass/self.dz)
         list_mass_tot = [Masse]
         
         #Les précip
@@ -192,7 +190,7 @@ class Model_bl_def():
 
         #Les data
         list_data = [grid_t_conc["concentration"].values]
-        list_mass= [grid_t_mass["concentration"].values]
+        list_mass= [rho_r_mass]
 
         # On renomme concentration en masse
         grid_t_mass["masse"] = grid_t_mass["concentration"].copy(data=grid_t_mass["concentration"].data)
@@ -200,7 +198,7 @@ class Model_bl_def():
         
         
 
-        for t in range(6):
+        for t in range(self.nb_step):
             # On initialise aussi concentration et masse au pas de temps suivant
 
             grid_dt_conc = xr.Dataset(data_vars={}, coords = {"level" : grid_t_conc["level"]})
@@ -210,7 +208,7 @@ class Model_bl_def():
             # On calcule les lambda de chaque mailles 
 
 
-            list_lamb_conc = self.eq.Liste_Lanbda(rho_r_conc*10000, grid_t_conc["concentration"].values)
+            list_lamb_conc = self.eq.Liste_Lanbda(rho_r_conc, grid_t_conc["concentration"].values)
             list_lamb_mass = self.eq.Liste_Lanbda(rho_r_mass, grid_t_mass["masse"].values)
 
 
@@ -277,7 +275,7 @@ class Model_bl_def():
 
             #On enregistre les dataset
             list_data.append(grid_dt_conc["concentration"].values)
-            list_mass.append(grid_dt_mass["masse"].values)
+            list_mass.append(rho_r_mass)
             
             # On prends le nouveau dataset comme l'ancien
             grid_t_conc = grid_dt_conc.copy()
@@ -287,7 +285,7 @@ class Model_bl_def():
         # On return les profils stockés pour l'affichage
 
 
-        return list_data,wat_flo_on_time,list_mass 
+        return list_data,wat_flo_tot,list_mass 
 
 
 
