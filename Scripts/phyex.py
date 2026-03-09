@@ -43,7 +43,11 @@ class Phyex():
         self.esp = esp
 
         # Geometry and initial content
-        condi_init = InitialCond(self.number_stitches, esp, nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
+
+        if method == "EULE2" :
+            condi_init = InitialCond(self.number_stitches, esp, "bin", nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
+        else :
+            condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
         self.vertical_boundaries = condi_init.levels_boundaries
         self.levels = condi_init.grid
 
@@ -164,7 +168,6 @@ class Phyex():
                         PCT[i + 1] = PRT[i+1] # r profile at the end of the timestep
                         r_profile.append(PRT[i+1, :, 0])
                         ct_profile.append(PCT[i+1, :, 0])
-                        
         #print (f"{i} : PCT {PCT[0]} ")
         #print(len(PRT[0]))
         #print(PRT[0][0])
