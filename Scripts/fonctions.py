@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from scipy.integrate import quad
 from scipy.optimize import brentq
+from scipy import integrate
 from collections import deque
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
@@ -39,6 +40,8 @@ class Eq :
             self.d=0.27
             self.alpha=1
             self.nu=1
+            self.C=5
+            self.x=1
         if esp=='g':
             self.a=19.6
             self.b=2.8
@@ -46,12 +49,16 @@ class Eq :
             self.d=0.66
             self.alpha=1
             self.nu=1
+            self.C=5e5
+            self.x=-0.5
         if esp=='r':
             self.a=524
             self.b=3
             self.c=842
             self.d=0.66
             self.alpha=1
+            self.C=8e6
+            self.x=-1            
             self.nu=1
         if esp=='c':
             self.a=524
@@ -64,6 +71,9 @@ class Eq :
     def Gamma(self, diametre, lam) :
         return (self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha))
    
+    def Gamma_fois_masse(self, diametre, lam) :
+        return ((self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha)))*(self.a*(diametre**self.b))
+
     def G(self, p) :
         return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
     
@@ -91,8 +101,14 @@ class Eq :
         return Liste_Dm_avec_nan
 
     def Liste_Vitesse_Concentration(self, Liste_Lanbda):
+
         Liste_Dm=self.Liste_Dmin_Dmax(Liste_Lanbda)
-        Vitesse= self.a*(Liste_Dm**self.b)
+        Vitesse= self.c*(Liste_Dm**self.d)
+
+
+        for i in range(len(Liste_Lanbda)) :
+            print("Dans ma liste, j'ai le lambda ", Liste_Lanbda[i], "  et ça me donne les diamètres : ", Liste_Dm[i], "ce qui me fait les vitesses : ", Vitesse[i])
+
         return Vitesse
 
     def Gamma_Masse(self, M, lam):
@@ -129,13 +145,16 @@ class Eq :
     def Liste_Vitesse_Masse(self, Liste_lanbda):
         Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
         Vitesse=self.Vitesse_Masse(Liste_M)
+    
+
         return Vitesse
 
     def Masse(self, diametre):
         return (self.a*(diametre**self.b))
     
     def Vitesse(self,diametre):
-        return(self.c*(diametre**self.d))
+
+        return (self.c*(diametre**self.d))
     
     def Calcul_rho_r(self, m, n):
         return np.dot(m,n)
@@ -151,7 +170,9 @@ class Eq :
 
         Dmin = brentq(lambda D: F(D) - 0.02, 0, D_high)
         Dmax = brentq(lambda D: F(D) - 0.999, 0, D_high)
- 
+
+        print("les infos que je veux : ", lam, Dmin, Dmax)
+
         return Dmin, Dmax
     
     def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
@@ -177,6 +198,86 @@ class Eq :
         Masse_tot=rho_tot*hauteur_col
         return Masse_tot
     
+    def Diameters_conc(self, p_list, lambda_list, Dmin=0, Dmax=1, nD=20000):
+
+        D = np.linspace(Dmin, Dmax, nD)
+
+        # densité pour tous les lambda
+        P = self.Gamma(D[:, None], lambda_list[None, :])
+
+        # position du maximum pour chaque lambda
+        imax = np.argmax(P, axis=0)
+
+        result = []
+
+        for i in range(len(lambda_list)):
+            p = p_list[i]
+
+            # branche gauche
+            Dl = D[:imax[i]+1]
+            Pl = P[:imax[i]+1, i]
+
+            # branche droite
+            Dr = D[imax[i]:]
+            Pr = P[imax[i]:, i]
+
+            D_left = np.interp(p, Pl, Dl)
+            D_right = np.interp(p, Pr[::-1], Dr[::-1])
+
+            result.append([D_left, D_right])
+
+        return result
+
+    def calcul_liste_vitesse_conc(self, liste_lam):
+        liste_lam=np.array(liste_lam)
+        Liste_Dmax=(((self.alpha * self.nu - 1) / self.alpha)**(1/self.alpha)) / liste_lam
+        Liste_prob_max=self.Gamma(Liste_Dmax, liste_lam)
+        un_pourcent_prob_max=0.01*Liste_prob_max
+        return self.Diameters_conc(un_pourcent_prob_max, liste_lam)
+    
+    def Liste_Lanbda_1_mom(self, liste_rho_r):
+        liste_rho_r=np.array(liste_rho_r)
+        Gam=self.G(self.b)
+        l_lam_1_mom=(liste_rho_r/(self.a*self.C*Gam))**(1/(self.x-self.b))
+        return l_lam_1_mom
+    
+
+
+    #Fonction pour le nouveau schéma de Sébastien Riette
+
+    def calcul_diametre(self, liste_h, dt):
+        liste_h=np.array(liste_h)
+        liste_d=(liste_h/(self.c*dt))**(1/self.d)
+        return liste_d
+    
+    def Calcul_integrale_conc(self, liste_d, lam):
+        integrale=[]
+        for i in range(len(liste_d)-1):
+            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma, liste_d[i], liste_d[i+1], args=(lam,))
+            integrale.append(integrale_entre_d_i_et_d_i_plus_1)
+        return integrale
+    
+    def Calcul_integrale_mass(self, liste_d, lam):
+        integrale=[]
+        for i in range(len(liste_d)-1):
+            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma_fois_masse, liste_d[i], liste_d[i+1], args=(lam,))
+            integrale.append(integrale_entre_d_i_et_d_i_plus_1)
+        return integrale
+
+
+
+
+
+
+eq_rain=Eq("r")
+
+print(eq_rain.Liste_Lanbda_1_mom([263, 241, 72]))
+
+
+
+
+
+
 
 class Affichage :
 
@@ -249,12 +350,12 @@ class profil_rho_r:
         # On définit les constantes que l'on va utiliser
 
         self.R = 287.058
-        self.exp_baro = 9.80665/(R*0.0065)
+        self.exp_baro = 9.80665/(self.R*0.0065)
 
         self.T0 = 288.150
         self.P0 = 101325
 
-    def calcul(alt,r):
+    def calcul(self, alt,r):
         
         T = self.T0 -0.0065 * alt
 
