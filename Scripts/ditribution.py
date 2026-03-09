@@ -69,7 +69,7 @@ class distribution:
                         Affichage.Affichage_Concentration(mass_form, "masse", model)
                         Affichage.Affichage_Precipitation(profil[1], model)
                     else:
-                        model_config = Model_bl_def(number_stitches,time_step,number_particules,speed_max,esp,CFL)
+                        model_config = Model_bl_def(number_stitches,time_step,number_particules,speed_max,esp,CFL,type_init)
 
                         profil = model_config.run()
                         concentration_formate = np.array(profil[0])
