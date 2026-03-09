@@ -18,7 +18,7 @@ from fonctions import Eq
 
 class Model_bl_def():
    
-   def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL):
+   def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL, lenght_sim):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -28,7 +28,7 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 3000  # length of simulation in seconds
+        self.length_sim = lenght_sim  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
