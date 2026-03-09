@@ -91,7 +91,7 @@ class Eq :
 
     def Liste_Vitesse_Concentration(self, Liste_Lanbda):
         Liste_Dm=self.Liste_Dmin_Dmax(Liste_Lanbda)
-        Vitesse= self.a*(Liste_Dm**self.b)
+        Vitesse= self.c*(Liste_Dm**self.d)
         return Vitesse
 
     def Gamma_Masse(self, M, lam):
@@ -107,8 +107,8 @@ class Eq :
         M_high = 1/lam
         while Fct(M_high) < 0.999:
             M_high *= 2
-        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
-        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+        Massemin = brentq(lambda M: Fct(M) - 0.01, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.999, 0, M_high)
  
         return Massemin, Massemax
         
@@ -138,7 +138,6 @@ class Eq :
         return np.dot(m,n)
     
     def Dmin_Dmax(self, lam):
- 
         def F(D):
             return quad(self.Gamma, 0, D, args=(lam))[0]
  
@@ -146,7 +145,7 @@ class Eq :
         while F(D_high) < 0.999:
             D_high *= 2
 
-        Dmin = brentq(lambda D: F(D) - 0.02, 0, D_high)
+        Dmin = brentq(lambda D: F(D) - 0.01, 0, D_high)
         Dmax = brentq(lambda D: F(D) - 0.999, 0, D_high)
  
         return Dmin, Dmax
@@ -172,6 +171,14 @@ class Eq :
         rho_tot=np.sum(liste_rho_r_sans_nan)
         Masse_tot=rho_tot*hauteur_col
         return Masse_tot
+    
+    def Epaiss_to_diam(self,h_interface):
+        
+        nb_interf = len(h_interface)
+
+        tab_diam = [np.flip([h_interface[nb_interf-interf-1]-h_interface[i] for i in range(nb_interf-interf)])for interf in range(nb_interf)]
+
+        return tab_diam
     
 
 class Affichage :
@@ -261,7 +268,7 @@ class profil_rho_r:
 
         rho_r = rho * r
 
-        return rho_r
+        return rho_r,rho
 
 
 
@@ -349,15 +356,17 @@ class InitialCond :
             if mode == "simple" :
                 concentration_profile = np.array([0 for i in range (nb_levels)])
                 concentration_profile [-1] = 1
+                concentration_profile [-2] = 1
 
                 r_profile = [ 0 for i in range(nb_levels)]
                 r_profile[-1] = 1
+                r_profile[-2] = 1/2
 
             if mode == "gauss" :
                 concentration_profile = np.array([gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)])
                 r_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile = profil_rho_r().calcul(self.grid,r_profile)
+            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,r_profile)
 
             concentration_profile *= N
             self.rho_r_profile *= r
@@ -366,7 +375,8 @@ class InitialCond :
 
 
             bin_profile = np.array(concentration_profile)   # computinng of the n bin profiles
-            data_vars1 = {f"concentration_bin_{1}" : ("level", bin_profile) }
+            data_vars1 = {"concentration" : ("level", bin_profile), "rho_r": ("level",self.rho_r_profile)}
+
 
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
 
