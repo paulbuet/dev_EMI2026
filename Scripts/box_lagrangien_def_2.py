@@ -14,9 +14,9 @@ import numpy as np
 from fonctions  import InitialCond as IC
 from fonctions import Eq
 
-class model_bl_def_2:
+class Model_bl_def_2:
 
-    def __init__(self,nb_stitches,esp,r,N,CFL,time_step):
+    def __init__(self,nb_stitches,esp,r,N,CFL,time_step, duree_simu):
         """
         nb_stitches (int): nombre de mailles
         esp (str): nom de la particule que l'on sédimente
@@ -40,11 +40,13 @@ class model_bl_def_2:
 
         # On s'occupe ici de définir les variables temporelles en secondes
 
-        duree_simu = 1000  
+        self.duree_simu = duree_simu
 
-        self.nb_time_step = duree_simu // time_step
+        self.nb_time_step = self.duree_simu // time_step
 
         # On configure la vitesse max de chute d'une particule
+
+        #Il y a pas de problème de cond CFL ici ???
 
         if CFL == "Yes":
             vitesse_max = epaiss_maille / time_step
@@ -52,6 +54,8 @@ class model_bl_def_2:
             vitesse_max = float('inf')
 
         # On formate les hauteurs d'interfaces afin de créer les mailles déformées
+
+        #Pareil je comprend pas pourquoi tu fais ça @Paul_buet ???
 
         h_interfaces_form = np.concatenate(([0],sorted(np.concatenate((h_interfaces,h_interfaces)))[:-1]))
 
