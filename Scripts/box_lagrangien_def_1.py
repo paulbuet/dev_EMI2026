@@ -28,8 +28,8 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 3000  # length of simulation in seconds
-        
+        self.length_sim = lenght_sim  # length of simulation in seconds
+
 
         self.delta_t = time_step # length of time step in seconds
 

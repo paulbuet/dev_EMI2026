@@ -8,7 +8,7 @@ from fonctions import Eq
 
 
 class Model_sl():
-    def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL, lenght_sim):   
+    def __init__(self, number_stitches,time_step,number_particules,speed_max,esp,CFL, mode, lenght_sim):   
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
@@ -23,4 +23,9 @@ class Model_sl():
         self.delta_t = time_step # length of time step in seconds
 
         self.nb_step = self.length_sim // self.delta_t  # number of time step
+
+        condi_init = InitialCond(number_stitches, esp, "bulk", mode = mode, r = 0.00001, N = number_particules)
+
+
+        
    
