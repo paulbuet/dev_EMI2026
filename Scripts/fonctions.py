@@ -426,6 +426,8 @@ class InitialCond :
 
             self.r_profile = np.array(concentration_profile) * r
 
+            #calcul de la concentration
+
             eq=Eq(esp)
             lam = eq.Lanbda (r, N)
             dmin, dmax = eq.Dmin_Dmax(lam)
