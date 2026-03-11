@@ -51,6 +51,7 @@ class Model_bl_def_2:
 
         duree_simu = 500
         self.duree_simu = duree_simu
+        self.time_step = time_step
 
         self.nb_time_step = self.duree_simu // time_step
 
@@ -242,12 +243,12 @@ class Model_bl_def_2:
 
 
 
-dodo = model_bl_def_2(20,'i',0.001,60,'No',100)
+dodo = Model_bl_def_2(20,'r',0.001,60,'No',100, 2000)
 
 profil = dodo.run()
 concentration_formate = np.array(profil[0])
 
 mass_form = np.array(profil[2])
-Affichage.Affichage_Concentration(concentration_formate, "concentration", "Box_Lagrangien")
+Affichage.Affichage_Concentration(concentration_formate, "concentration", "Box_Lagrangien", )
 Affichage.Affichage_Concentration(mass_form, "masse", "Box_Lagrangien")
 Affichage.Affichage_Precipitation(profil[1], "Box_Lagrangien")

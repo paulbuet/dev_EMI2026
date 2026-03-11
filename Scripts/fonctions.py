@@ -400,7 +400,7 @@ class InitialCond :
 
     '''
     
-<<<<<<< HEAD
+
     def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 20, nb_classes = 10, r = 0.001, N = 1) :
 
         if types == "bin":
