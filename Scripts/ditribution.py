@@ -4,6 +4,7 @@ from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
 from box_lagrangien_def_1 import Model_bl_def 
+from box_lagrangien_def_2 import Model_bl_def_2
 """
 from phyex import Eule, Eule2, Stat
 """
@@ -99,10 +100,9 @@ class distribution:
                         concentration_formate = np.array(results[0]).sum(axis=1)
 
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig)
+                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
+                        Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
                         Affichage.Affichage_Precipitation(results[1], model, path_fig)
-                        Affichage.Afficher()
 
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
