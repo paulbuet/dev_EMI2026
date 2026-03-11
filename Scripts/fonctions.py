@@ -402,9 +402,6 @@ class InitialCond :
     
 <<<<<<< HEAD
     def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 20, nb_classes = 10, r = 0.001, N = 1) :
-=======
-    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, r = 0.0001, N = 1) :
->>>>>>> faa7a9a7e4a5c21b86e969dfdd3949f5d9737698
 
         if types == "bin":
 
@@ -434,6 +431,7 @@ class InitialCond :
             dmin, dmax = eq.Dmin_Dmax(lam)
             self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
 
+
             bin_profile = [np.array(concentration_profile) * self.bin_concentration[i][1] for i in range(len(self.bin_concentration))] # computinng of the n bin profiles
             data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(self.bin_concentration))}
 
@@ -461,6 +459,7 @@ class InitialCond :
                 r_profile = [ 0 for i in range(nb_levels)]
                 r_profile[-1] = 1
                 r_profile[-2] = 1/2
+
 
             if mode == "gauss" :
                 r_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
