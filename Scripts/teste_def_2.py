@@ -79,19 +79,19 @@ class model_bl_def_3:
             rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
 
             print("somme avant:", sum(rho_r_profil), sum(concentration_profil)+chute_conc_dt)
-            
+            print("rho_r=",rho_r_profil,"C=", concentration_profil)            
             
 
             for stitch in range(len(self.epaiss_maille)):
-
-                print("gros diam =",self.diam_dist[stitch+1][0])
-
                 
                 concentration_profil_intermed = - concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch]))
-                chute_conc = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc([self.diam_dist[stitch+1][0],10000],Lambda[stitch]))
+                chute_conc = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))
 
-                print(sum(np.array(self.Eq_config.Calcul_integrale_conc([0.000001,100000],Lambda[stitch]))))
+                
 
+                if sum(np.array(self.Eq_config.Calcul_integrale_conc([0,np.inf],Lambda[stitch])))<0.99:
+                    print(sum(np.array(self.Eq_config.Calcul_integrale_conc([0,np.inf],Lambda[stitch]))), "ça beugue parce que lambda = ",Lambda[stitch])
+                    print("C'est possiblement parce que rho_r et C sont:",rho_r_profil[stitch], concentration_profil[stitch])
                 rho_r_profil_intermed = - rho_r_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_mass(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch]))
 
                 concentration_profil_intermed = np.pad(concentration_profil_intermed,(0,len(self.epaiss_maille)-stitch-1))
@@ -116,8 +116,8 @@ class model_bl_def_3:
 
 
 
-        Affichage.Affichage_Concentration(Liste_concentration,"concentration","Box_Lagrangien")
-        Affichage.Affichage_Concentration(Liste_rho_r,"masse","Box_Lagrangien")
+        Affichage.Affichage_Concentration(Liste_concentration,"concentration","Box_Lagrangien","./fig")
+        Affichage.Affichage_Concentration(Liste_rho_r,"masse","Box_Lagrangien","./fig")
 
         
         

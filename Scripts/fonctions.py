@@ -469,9 +469,6 @@ class InitialCond :
             concentration_profile = Eq(esp).contenu_to_conc(self.rho_r_profile)
 
             eq=Eq(esp)
-            lam = eq.Lanbda (rho_r, N)
-            dmin, dmax = eq.Dmin_Dmax(lam)
-            self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
 
 
             bin_profile = np.array(concentration_profile)   # computinng of the n bin profiles
