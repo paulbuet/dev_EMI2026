@@ -21,6 +21,7 @@ from scipy import integrate
 from collections import deque
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
+from pathlib import Path
 
 ### Classes and functions definition ###
 
@@ -282,10 +283,7 @@ print(eq_rain.Liste_Lanbda_1_mom([263, 241, 72]))
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model): #type="concentration" ou "masse"  
-
-        # Concentration : Liste de liste [[maille bas, maille haut]0, ... [maille bas, maille haut]]
-
+    def Affichage_Concentration(Concentration, typ, model, path_fig): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -294,15 +292,15 @@ class Affichage :
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         plt.pcolormesh(Transpose,cmap=reversed_map)
-        plt.title(f"Evolution de la {typ} de particules dans le temps", fontsize=22)
+        plt.title(f"{typ} : évolution dans le temps", fontsize=22)
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        plt.savefig(f"./fig/{model}/{typ}.png")
-        plt.show()
+        file_location = Path(path_fig) / Path(model) / Path(typ) 
+        plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model):
+    def Affichage_Precipitation(Precip, model, path_fig):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
@@ -332,7 +330,10 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        plt.savefig(f"./fig/{model}/Précipitations.png")
+        file_location = Path(path_fig) / Path(model) / "Précipitations.png"
+        plt.savefig(file_location)
+
+    def Afficher () :
         plt.show()
 
 
@@ -399,7 +400,7 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, r = 0.001, N = 1) :
+    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, r = 0.0001, N = 1) :
 
         if types == "bin":
 

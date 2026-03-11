@@ -9,6 +9,7 @@ import time
 import argparse
 import numpy as np
 from ditribution import distribution
+from pathlib import Path
 
 
 
@@ -93,6 +94,15 @@ def check_type_init(type_init):
     return type_init 
 
 
+def check_path(path):
+    """
+    function that takes as input the path of the working directory, checks its existance, and returns an appropriate response
+    nothing if existing, 
+    error message otherwise
+    """
+    if not(Path(path).exists()):
+        raise argparse.ArgumentTypeError(f"{path} does not exist, please enter an existing working directory.")
+    return path
 def check_CFL(answer):
     """
     function that takes as input the answer for efficiency_test given by the user, checks its compliance, and returns an appropriate response
@@ -130,7 +140,10 @@ parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maxim
 parser.add_argument('-e','--specie', help = "Pick an hydrometeor specie, accepted species are 'i', 's', 'g', 'r' or 'c'", default="r", type=check_specie)
 parser.add_argument('-f','--efficiency_test', help = "Used as a developpement tool to compare differents versions of the models (choose between Yes and No)", default="No", type=check_efficiency_test)
 parser.add_argument('-i','--initial_condition_mode', help = "Pick the type of intialisation you want for the concentration profile (choose between 'simple' and 'gauss')", default="simple", type=check_type_init)
+parser.add_argument('-pp','--path_to_phyex', help = "Enter the absolute or relative path the 'PHYEX' git depository from your working directory", default="..", type=check_path)
+parser.add_argument('-pf','--path_to_fig', help = "Enter the absolute or relative path to the 'fig' directory from your working directory", default="./fig", type=check_path)
 
+model = parser.parse_args().model
 model = parser.parse_args().model
 type_advance = parser.parse_args().type_advance
 number_stitches = parser.parse_args().number_stitches
@@ -143,9 +156,11 @@ speed_max = parser.parse_args().speed_max
 esp = parser.parse_args().specie
 efficiency_test = parser.parse_args().efficiency_test
 type_init = parser.parse_args().initial_condition_mode
+path_phyex = parser.parse_args().path_to_phyex
+path_fig = parser.parse_args().path_to_fig
 
 
 # We print its choices
 print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {number_particules} particles | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init}")
 
-distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test,type_init)
+distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig)
