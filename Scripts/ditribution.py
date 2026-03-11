@@ -4,6 +4,7 @@ from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
 from box_lagrangien_def_1 import Model_bl_def 
+from box_lagrangien_def_2 import Model_bl_def_2
 """
 from phyex import Eule, Eule2, Stat
 """
@@ -98,28 +99,39 @@ class distribution:
                         results = model_config.run()
                         concentration_formate = np.array(results[0]).sum(axis=1)
 
-                        mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
-                        Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
-                        Affichage.Affichage_Precipitation(results[1], model, path_fig)
+                        mass_form = np.array(profil[2]).sum(axis=1)
+                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
+                        Affichage.Affichage_Concentration(mass_form, "masse", model)
+                        Affichage.Affichage_Precipitation(profil[1], model) 
+                        Affichage.Affichage_Precipitation(profil[1], model)
+            
+            if model == "New_Model" :
+                model_config = Model_bl_def_2(number_stitches,esp,r,N,CFL,time_step, duree_simu)
 
+                profil = model_config.run()
+                concentration_formate = np.array(profil[0]).sum(axis=1)
+
+                mass_form = np.array(profil[2]).sum(axis=1)
+
+                Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
+                Affichage.Affichage_Concentration(mass_form, "masse", model)
+                Affichage.Affichage_Precipitation(profil[1], model)
+
+
+
+
+
+            """
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
-                #print (cls)
-                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
-                #model_config_bl = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
+                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
 
-                results = model_config.run()
+                profil = model_config.run()
+                concentration_formate = np.array(profil[0]).sum(axis=1)
 
-                concentration_formate = np.array(results[3])
-                Affichage.Affichage_Concentration(concentration_formate, "Concentration en particules", model, path_fig)
-                concentration_formate = np.array(results[2])
-                Affichage.Affichage_Concentration(concentration_formate, "Rapport de mélange", model, path_fig)
-                #Affichage.Affichage_Precipitation(results[0], model, path_fig)
-                Affichage.Afficher()
+                mass_form = np.array(profil[2]).sum(axis=1)
+                Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
+                Affichage.Affichage_Concentration(mass_form, "masse", model)
+                Affichage.Affichage_Precipitation(profil[1], model)
+            """
 
-                print (f"{model_config.__dict__}")
-                #print (f"{model_config_bl.__dict__}")
-
-                #plt.plot(model_config.levels, model_config.rho_r_profile)
-                #plt.show()

@@ -73,7 +73,7 @@ class Eq :
         return (self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha))
    
     def Gamma_fois_masse(self, diametre, lam) :
-        return ((self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(diametre**(self.alpha*self.nu-1))*np.exp(-((lam*diametre)**self.alpha)))*(self.a*(diametre**self.b))
+        return self.Gamma(diametre, lam)*(self.a*(diametre**self.b))
 
     def G(self, p) :
         return (gamma(self.nu+p/self.alpha)/gamma(self.nu))
@@ -193,8 +193,8 @@ class Eq :
         
         nb_interf = len(h_interface)
 
-        tab_diam = [np.flip([h_interface[nb_interf-interf-1]-h_interface[i] for i in range(nb_interf-interf)])for interf in range(nb_interf)]
-
+        tab_diam = [np.pad([h_interface[stitch_dep] - h_interface[stitch_arr] for stitch_arr in range(stitch_dep+1)],(0,nb_interf-stitch_dep-1))for stitch_dep in range(nb_interf)]
+        
         return tab_diam
     
     def Diameters_conc(self, p_list, lambda_list, Dmin=0, Dmax=1, nD=20000):
@@ -259,21 +259,24 @@ class Eq :
     def Calcul_integrale_mass(self, liste_d, lam):
         integrale=[]
         for i in range(len(liste_d)-1):
-            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma_fois_masse, liste_d[i], liste_d[i+1], args=(lam,))
+            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma_Masse, liste_d[i], liste_d[i+1], args=(lam,))
             integrale.append(integrale_entre_d_i_et_d_i_plus_1)
         return integrale
+    
+    def contenu_to_conc(self,rho_r):
+        return self.C * (rho_r/(self.a*self.C*self.G(self.b)))**(self.x/(self.x-self.b))
 
 
 
 
-
+"""
 
 eq_rain=Eq("r")
 
 print(eq_rain.Liste_Lanbda_1_mom([263, 241, 72]))
 
 
-
+"""
 
 
 
@@ -397,7 +400,7 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 20, nb_classes = 10, rho_r = 0.001, N = 1) :
+    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, r = 0.0001, N = 1) :
 
         if types == "bin":
 
@@ -451,30 +454,21 @@ class InitialCond :
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
             if mode == "simple" :
-                concentration_profile = np.array([0 for i in range (nb_levels)])
-                concentration_profile [-1] = 1
-                concentration_profile [-2] = 1
-
                 r_profile = [ 0 for i in range(nb_levels)]
                 r_profile[-1] = 1
                 r_profile[-2] = 1/2
 
             if mode == "gauss" :
-                concentration_profile = np.array([gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)])
                 r_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
             self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,r_profile)
 
-            concentration_profile *= N
+        
             self.rho_r_profile *= r
 
-            self.rho_r_profile = np.array(concentration_profile) * rho_r
-            self.concentration_profile = concentration_profile
-        
+            concentration_profile = Eq(esp).contenu_to_conc(self.rho_r_profile)
+
             eq=Eq(esp)
-            lam = eq.Lanbda (rho_r, N)
-            dmin, dmax = eq.Dmin_Dmax(lam)
-            self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
 
 
             bin_profile = np.array(concentration_profile)   # computinng of the n bin profiles
