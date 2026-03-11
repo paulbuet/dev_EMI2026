@@ -289,7 +289,7 @@ class Affichage :
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         plt.pcolormesh(Transpose,cmap=reversed_map)
-        plt.title(f"{typ} : évolution dans le temps", fontsize=22)
+        plt.title(f"Evolution de la {typ} de particules en fonction du temps", fontsize=22)
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
@@ -397,7 +397,7 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 20, nb_classes = 10, rho_r = 0.001, N = 1) :
+    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 20, nb_classes = 10, r = 0.001, N = 1) :
 
         if types == "bin":
 
@@ -420,10 +420,10 @@ class InitialCond :
             if mode == "gauss" :
                 concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile = np.array(concentration_profile) * rho_r
+            self.r_profile = np.array(concentration_profile) * r
 
             eq=Eq(esp)
-            lam = eq.Lanbda (rho_r, N)
+            lam = eq.Lanbda (r, N)
             dmin, dmax = eq.Dmin_Dmax(lam)
             self.bin_concentration = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
 
