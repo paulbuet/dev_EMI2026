@@ -4,7 +4,7 @@ from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
 from box_lagrangien_def_1 import Model_bl_def 
-from box_lagrangien_def_2 import Model_bl_def_2
+#from box_lagrangien_def_2 import Model_bl_def_2
 """
 from phyex import Eule, Eule2, Stat
 """

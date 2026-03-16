@@ -52,13 +52,13 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bulk",nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,N=N,mode=type_init)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.bin_concentration)[:,0]
+        self.size_diam = np.array(condi_init.data)[:,0]
 
         # Initialisation of variables
 
