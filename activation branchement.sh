@@ -1,0 +1,1 @@
+cd .. ; cd PHYEX ; git fetch SR ; git checkout lima_sedim_binding ; . tools/env.sh ; cd build/with_ecbuild/ ; rm -rf arch_gnu ; ./make_ecbuild.sh ; cd ../../../dev_EMI2026_fork/
