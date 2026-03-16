@@ -267,7 +267,7 @@ class Eq :
         return integrale
     
     def content_to_conc_bulk_1M(self,rho_r):
-        return self.C * Lanbda_1M(rho_r)**(self.x)
+        return self.C * self.Lanbda_1M(rho_r)**(self.x)
     
 
 
@@ -435,19 +435,23 @@ class InitialCond :
 
             self.r_profile = np.array(relative_profile)*r
 
-            _,self.rho = profil_rho_r().calcul(self.grid,self.r_profile)
+            self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
 
             eq=Eq(esp)
-            lam = eq.Lanbda_1M(self.rho)
+            lam = eq.Lanbda_1M(self.rho_profile)
             print (lam)
             # print(f"rho {self.rho}")
 
-            N = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
-            print(N)
+            N_profile = eq.content_to_conc_bulk_1M(self.rho_profile)
+            # N_profile = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
+            print(N_profile)
 
-            dmin, dmax = eq.Dmin_Dmax(lam)
-            bins = eq.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
-            
+            dminmax = [eq.Dmin_Dmax(lam[ind_level]) for ind_level in range(nb_levels)]
+            print (dminmax)
+            levels_bin_splittings= [eq.Classe_D (nb_classes, dminmax[ind_level][0], dminmax[ind_level][1], N_profile[ind_level], lam[ind_level]) for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
+            # print (f" levels_bins {levels_bins}")
+
+
             # Vérification : Affichage des profils des bins (à décommenter)
             # x = [self.grid[i] for i in range(nb_levels)]
             # y = self.bin_concentration[0][1]*np.array(relative_profile)
@@ -457,15 +461,16 @@ class InitialCond :
             # print (bins)
 
 
-            bins_conentrations_profiles = [np.array(relative_profile) * bins[ind_bin][1] for ind_bin in range(len(bins))] # computinng of the n bin profiles
-            data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bins_conentrations_profiles[ind_bin]) for ind_bin in range(len(bins))}
+            bins_concentrations_profiles = [[splitting[ind_bin][1] for splitting in levels_bin_splittings] for ind_bin in range(nb_classes)] # computinng of the n bin profiles
+            print(bins_concentrations_profiles)
+            data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bins_concentrations_profiles[ind_bin]) for ind_bin in range(nb_classes)}
 
-            self.diameters = [bins[ind_bin][0] for ind_bin in range(len(bins))]
-            data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.diameters[ind_bin] for ind_bin in range(len(bins))} # addition of the diameters
+            self.diameters = [bins[ind_bin][0] for ind_bin in range(nb_classes)]
+            data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.diameters[ind_bin] for ind_bin in range(nb_classes)} # addition of the diameters
             
-            bins_rho_r_profiles = [bins_conentrations_profiles[ind_bin] * eq.Masse(np.array(bins[ind_bin][0])) for ind_bin in range(len(bins))]
+            bins_rho_r_profiles = [bins_concentrations_profiles[ind_bin] * eq.Masse(np.array(bins[ind_bin][0])) for ind_bin in range(nb_classes)]
             
-            data_vars3 = {f"rho_r_bin_{ind_bin+1}" : bins_rho_r_profiles[ind_bin][:] for ind_bin in range(len(bins))}
+            data_vars3 = {f"rho_r_bin_{ind_bin+1}" : bins_rho_r_profiles[ind_bin][:] for ind_bin in range(nb_classes)}
 
             data_vars1.update(data_vars2)
             data_vars1.update(data_vars3)
