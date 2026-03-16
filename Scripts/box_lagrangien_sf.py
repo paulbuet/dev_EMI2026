@@ -51,7 +51,7 @@ class Model_bl_sf():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp, "bin", nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp, "bin", nb_classes = self.nb_diam,mode=type_init)
    
         self.grid0 = condi_init.data
 
