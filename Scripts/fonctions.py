@@ -259,7 +259,7 @@ class Eq :
     def Calcul_integrale_mass(self, liste_d, lam):
         integrale=[]
         for i in range(len(liste_d)-1):
-            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma_Masse, liste_d[i], liste_d[i+1], args=(lam,))
+            integrale_entre_d_i_et_d_i_plus_1, err = integrate.quad(self.Gamma_fois_masse, liste_d[i], liste_d[i+1], args=(lam,))
             integrale.append(integrale_entre_d_i_et_d_i_plus_1)
         return integrale
     
