@@ -65,14 +65,10 @@ class Model_bl():
         """
    
         condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init)
-        
-        print(condi_init.diameters)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
-
-        
 
         self.size_diam = np.array(condi_init.diameters)
 
@@ -93,7 +89,7 @@ class Model_bl():
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
-        self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
+        self.list_mass = [[self.grid0[f"rho_r_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]]
 
         # speed is calculated
 
