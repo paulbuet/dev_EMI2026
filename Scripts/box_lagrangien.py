@@ -12,7 +12,7 @@ import xarray as xr
 import xarray_regrid
 
 # On importe ici les classes extèrieures
-from condi_init import InitialCond
+from fonctions import InitialCond
 from equations import Eq
 
 class Model_bl():

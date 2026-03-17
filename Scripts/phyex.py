@@ -17,7 +17,7 @@ import f90nml
 import numpy as np
 
 # On importe ici les classes extèrieures
-from condi_init import InitialCond
+from fonctions import InitialCond
 
 
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
@@ -27,7 +27,7 @@ class Phyex():
     """
     Generic class to call the different sedimentation schemes of PHYEX
     """
-    def __init__(self, method, number_stitches, number_bin, number_particules,
+    def __init__(self, method, number_stitches, number_bin,
                  delta_t, speed_max, esp, CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
@@ -35,7 +35,6 @@ class Phyex():
         """
         self.method = method
         self.number_stitches = number_stitches
-        N = number_particules
         self.length_sim = 200  # length of simulation in seconds
         self.delta_t = delta_t # length of time step in seconds
         self.nb_step = self.length_sim // self.delta_t  # number of time step

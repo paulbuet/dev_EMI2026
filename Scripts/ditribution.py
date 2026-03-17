@@ -120,8 +120,8 @@ class distribution:
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
                 #print (cls)
-                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
-                #model_config_bl = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
+                model_config = cls(number_stitches,number_bin,time_step,speed_max,esp,CFL,type_init)
+                #model_config_bl = Model_bl_sf(number_stitches,number_bin,time_step,speed_max,esp,CFL,type_init)
 
                 results = model_config.run()
 

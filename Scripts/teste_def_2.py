@@ -10,7 +10,7 @@
 import numpy as np
 
 # On importe les classes nécessaires
-from condi_init  import InitialCond as IC
+from fonctions  import InitialCond as IC
 from equations import Eq
 from formatage import Formatage 
 
