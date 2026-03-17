@@ -13,20 +13,18 @@ import xarray_regrid
 from tqdm import tqdm
 
 # On importe ici les classes extèrieures
-from fonctions import InitialCond
-from fonctions import Eq
+from condi_init import InitialCond
+from equations import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init):
+   def __init__(self, number_stitches,number_bin,r,time_step,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
 
         self.number_stitches = number_stitches
-
-        N = number_particules
 
         self.length_sim = 2000  # length of simulation in seconds
 
@@ -52,7 +50,7 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,r = r,mode=type_init)
    
         self.grid0 = condi_init.data
 

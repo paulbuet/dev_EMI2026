@@ -103,6 +103,15 @@ def check_path(path):
     if not(Path(path).exists()):
         raise argparse.ArgumentTypeError(f"{path} does not exist, please enter an existing working directory.")
     return path
+
+def check_pos(numb):
+    try:
+        nb = float()
+        if nb<0:
+            raise argparse.ArgumentTypeError(f"{numb} has to be a positive number.")
+    except:
+        raise argparse.ArgumentTypeError(f"{numb} has to be a number.")
+    return numb
 def check_CFL(answer):
     """
     function that takes as input the answer for efficiency_test given by the user, checks its compliance, and returns an appropriate response
@@ -133,7 +142,7 @@ parser.add_argument('-s','--type_advance',help="Choose between Step_Forward and 
 parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 100 , type=check_numb)
 parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (deformable or not)", default="No", type=check_deformable)
 parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
-parser.add_argument('-N','--number_particules', help = "Pick a positif integer for the number of particules", default=100, type=check_numb)
+parser.add_argument('-r','--mixing_ratio', help = "Pick a positif number for the mixing ratio", default=0.001, type=check_pos)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
 parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_CFL)
 parser.add_argument('-S','--speed_max', help = "Pick a positif integer for maximum speed", default=1000, type=check_numb)
@@ -149,7 +158,7 @@ type_advance = parser.parse_args().type_advance
 number_stitches = parser.parse_args().number_stitches
 deformable = parser.parse_args().deformable
 number_bin = parser.parse_args().number_bin
-number_particules = parser.parse_args().number_particules
+mixing_ratio = parser.parse_args().mixing_ratio
 time_step = parser.parse_args().time_step
 CFL = parser.parse_args().CFL
 speed_max = parser.parse_args().speed_max
@@ -161,6 +170,6 @@ path_fig = parser.parse_args().path_to_fig
 
 
 # We print its choices
-print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {number_particules} particles | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init}")
+print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {mixing_ratio} mixing ratio | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init}")
 
-distribution(model,type_advance,number_stitches,deformable,number_bin,number_particules,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig)
+distribution(model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig)
