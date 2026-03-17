@@ -29,6 +29,9 @@ class model_bl_def_3:
         # On récupère les valeurs de hauteurs des interfaces et on ajoute le sol
 
         h_interfaces = np.concatenate(([0],condi_config.levels_boundaries))
+        self.h_interfaces = h_interfaces
+
+        print("Test : ", h_interfaces)
 
         # On s'occupe du temps
 
@@ -73,23 +76,35 @@ class model_bl_def_3:
            
             
 
-            for stitch in range(len(self.epaiss_maille)):
+            for stitch_dep in range(len(self.epaiss_maille)):
+                print("dep", stitch_dep)
+                conc_profil_int = []
+                for stitch_arr in range(stitch_dep):
+                    conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "concentration", self.time_step, Lambda[stitch_dep])
+                    conc_profil_int.append(conc_sed_i_to_j)
+                    print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))
+                print("test, conc_profil_int : ", conc_profil_int, len(conc_profil_int))
                 
-                concentration_profil_intermed = - concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch]))
-                chute_conc = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))
+                chuté = concentration_profil[stitch_dep]
 
-                rho_r_profil_intermed = - concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_mass(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch]))
+
+                #concentration_profil_intermed =- concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch])) #self.Eq_config.calcul_maille_arrivee(h1, h2, h3, h4, concentration_profil[stitch], "concentration", self.time_step, Lambda[stitch])
+                #chute_conc = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))
+
+                #rho_r_profil_intermed = - concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_mass(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch]))
                 
-                chute_mass = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_mass([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))
+                #chute_mass = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_mass([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))
 
-                concentration_profil_intermed = np.pad(concentration_profil_intermed,(0,len(self.epaiss_maille)-stitch-1))
-                rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch-1))
+                #concentration_profil_intermed = np.pad(concentration_profil_intermed,(0,len(self.epaiss_maille)-stitch-1))
+                #print("test 2 : ", t, stitch, concentration_profil_intermed)
+                #rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch-1))
 
 
-                concentration_profil_dt += np.nan_to_num(concentration_profil_intermed)
-                rho_r_profil_dt += np.nan_to_num(rho_r_profil_intermed)
-                chute_conc_dt += np.nan_to_num(chute_conc[0])
-                chute_mass_dt += np.nan_to_num(chute_mass[0])
+                #concentration_profil_dt += np.nan_to_num(concentration_profil_intermed)
+                #rho_r_profil_dt += np.nan_to_num(rho_r_profil_intermed)
+                #chute_conc_dt += np.nan_to_num(chute_conc[0])
+                #chute_mass_dt += np.nan_to_num(chute_mass[0])
 
 
             Liste_rho_r.append(rho_r_profil_dt)
