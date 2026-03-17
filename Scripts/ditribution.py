@@ -46,9 +46,10 @@ class distribution:
                         print (f"temps v : {b-a} s")
 
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
-                        Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig)
                         Affichage.Affichage_Precipitation(results[1], model, path_fig)
+                        Affichage.Afficher()
                 else:
                     if deformable == "No":
                         model_config = Model_bl_sf(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
@@ -57,9 +58,10 @@ class distribution:
                         concentration_formate = np.array(results[0]).sum(axis=1)
 
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
-                        Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig)
                         Affichage.Affichage_Precipitation(results[1], model, path_fig)
+                        Affichage.Afficher()
         else : 
             
             if model == "Box_Lagrangien":
@@ -70,6 +72,7 @@ class distribution:
 
                         results = model_config.run()
                         concentration_formate = np.array(results[0]).sum(axis=1)
+                        print(results[0])
 
                         mass_form = np.array(results[2]).sum(axis=1)
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
@@ -82,9 +85,10 @@ class distribution:
                         concentration_formate = np.array(profil[0])
 
                         mass_form = np.array(profil[2])
-                        Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
-                        Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig)
                         Affichage.Affichage_Precipitation(profil[1], model, path_fig)
+                        Affichage.Afficher()
 
                 else:
                     if deformable == "No":
@@ -118,14 +122,21 @@ class distribution:
             """
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
-                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL)
+                #print (cls)
+                model_config = cls(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
+                #model_config_bl = Model_bl_sf(number_stitches,number_bin,number_particules,time_step,speed_max,esp,CFL,type_init)
 
-                profil = model_config.run()
-                concentration_formate = np.array(profil[0]).sum(axis=1)
+                results = model_config.run()
 
-                mass_form = np.array(profil[2]).sum(axis=1)
-                Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
-                Affichage.Affichage_Concentration(mass_form, "masse", model)
-                Affichage.Affichage_Precipitation(profil[1], model)
-            """
+                concentration_formate = np.array(results[3])
+                Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig)
+                concentration_formate = np.array(results[2])
+                Affichage.Affichage_Concentration(concentration_formate, "Masse", model, path_fig)
+                #Affichage.Affichage_Precipitation(results[0], model, path_fig)
+                Affichage.Afficher()
 
+                print (f"{model_config.__dict__}")
+                #print (f"{model_config_bl.__dict__}")
+
+                #plt.plot(model_config.levels, model_config.rho_r_profile)
+                #plt.show()
