@@ -16,7 +16,7 @@ import numpy
 import f90nml
 
 # On importe ici les classes extèrieures
-from fonctions import InitialCond
+from condi_init import InitialCond
 
 
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
