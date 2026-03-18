@@ -28,19 +28,18 @@ chargé de l'appel des modèles en fonction des informations reçues de l'utilis
 
 Une fois les informations fournies à distribution, ce script appelle le script du modèle correspondant. Parmi ces scripts on retrouve :
 
-<ul><li> box_lagrangien.py (modèle par défaut à largeur de boite fixe et utilisant la méthode d'avance temporelle <br> Step_By_Step </br>)
-<li> box_lagrangien_vectorized.py (même modèle que ci-dessus mais incluant de légères modifications concernant la vectorisation des porcédés)
-<li> box_lagrangien_sf.py (modèle à largeur de boite fixe utilisant la méthode d'avance temporelle <br>Step_Forward</br>)
-<li> box_lagrangien_sf_vectorized.py (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
-<li> phyex.py (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
-<li> box_lagrangien_def.py (modèle à largeur de boite variable utilisant la méthode d'avance temporelle <br>Step_By_Step</br>)
+box_lagrangien.py (modèle par défaut à largeur de boite fixe et utilisant la méthode d'avance temporelle <br> Step_By_Step </br>)
+box_lagrangien_vectorized.py (même modèle que ci-dessus mais incluant de légères modifications concernant la vectorisation des porcédés)
+box_lagrangien_sf.py (modèle à largeur de boite fixe utilisant la méthode d'avance temporelle <br>Step_Forward</br>)
+box_lagrangien_sf_vectorized.py (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
+phyex.py (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
+box_lagrangien_def.py (modèle à largeur de boite variable utilisant la méthode d'avance temporelle <br>Step_By_Step</br>)
 
 Les modèles appellent tous condi_init.py pour initialiser les prodils de contenu et/ou de masse (selon l'usage d'un schéma bin ou d'un schéma bulk).
 
 Les resultats des modèles sont ensuite récupérés dans distibution.py.
 
 Enfin celui-ci fait appel à affichage.py pour afficher les resultats.
-<<<<<<< HEAD
 
 ### Stockage des figures dans "fig"
 
@@ -50,5 +49,3 @@ Attention, il est nécessaire pour leur enregistrement que les répértoires nom
 
 ### Documents annexes
 
-=======
->>>>>>> 7045e4725c197fdfffefa1934c8ca9eb93ca79e5
