@@ -16,7 +16,7 @@ modèles utilisant le schéma eulérien utilisé en opérationnel.
 <li> pour configurer le branchement phyex : cloner le dépôt git PHYEX en amont du dépôt git de ce projet puis executer activation branchement.sh dans le dépôt de ce projet.
 <li> pour lancer les scripts : python3 Scripts/entree.py -h
 <li> le module Argparse vous renverra les informations pour paramétrer votre run.
-
+</ul>
 ### Architecture du projet
 
 L'appel des scripts se fait via le script entree.py lui-même utilisant le module Argparse pour recevoir les informations et les communiquer à distribution.py
@@ -30,3 +30,9 @@ Une fois les informations fournies à distribution, ce script appelle le script 
 <li> <br> box_lagrangien_sf_vectorized.py </br> (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
 <li> <br> phyex.py </br> (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
 <li> <br> box_lagrangien_def.py </br> (modèle à largeur de boite variable utilisant la méthode d'avance temporelle <br>Step_By_Step</br>)
+
+Les modèles appellent tous condi_init.py pour initialiser les prodils de contenu et/ou de masse (selon l'usage d'un schéma bin ou d'un schéma bulk).
+
+Les resultats des modèles sont ensuite récupérés dans distibution.py.
+
+Enfin celui-ci fait appel à affichage.py pour afficher les resultats.
