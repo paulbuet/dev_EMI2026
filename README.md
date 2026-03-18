@@ -17,22 +17,38 @@ modèles utilisant le schéma eulérien utilisé en opérationnel.
 <li> pour lancer les scripts : python3 Scripts/entree.py -h
 <li> le module Argparse vous renverra les informations pour paramétrer votre run.
 </ul>
-### Architecture du projet
+
+## Architecture du projet
+### Fonctionnement général des scripts
+
+Les scripts python utilisés sont tous contenus dans "scripts".
 
 L'appel des scripts se fait via le script entree.py lui-même utilisant le module Argparse pour recevoir les informations et les communiquer à distribution.py
 chargé de l'appel des modèles en fonction des informations reçues de l'utilisateur.
 
 Une fois les informations fournies à distribution, ce script appelle le script du modèle correspondant. Parmi ces scripts on retrouve :
 
-<ul><li> <br> box_lagrangien.py </br> (modèle par défaut à largeur de boite fixe et utilisant la méthode d'avance temporelle <br> Step_By_Step </br>)
-<li> <br> box_lagrangien_vectorized.py </br> (même modèle que ci-dessus mais incluant de légères modifications concernant la vectorisation des porcédés)
-<li> <br> box_lagrangien_sf.py </br> (modèle à largeur de boite fixe utilisant la méthode d'avance temporelle <br>Step_Forward</br>)
-<li> <br> box_lagrangien_sf_vectorized.py </br> (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
-<li> <br> phyex.py </br> (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
-<li> <br> box_lagrangien_def.py </br> (modèle à largeur de boite variable utilisant la méthode d'avance temporelle <br>Step_By_Step</br>)
+<ul><li> box_lagrangien.py (modèle par défaut à largeur de boite fixe et utilisant la méthode d'avance temporelle <br> Step_By_Step </br>)
+<li> box_lagrangien_vectorized.py (même modèle que ci-dessus mais incluant de légères modifications concernant la vectorisation des porcédés)
+<li> box_lagrangien_sf.py (modèle à largeur de boite fixe utilisant la méthode d'avance temporelle <br>Step_Forward</br>)
+<li> box_lagrangien_sf_vectorized.py (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
+<li> phyex.py (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
+<li> box_lagrangien_def.py (modèle à largeur de boite variable utilisant la méthode d'avance temporelle <br>Step_By_Step</br>)
 
 Les modèles appellent tous condi_init.py pour initialiser les prodils de contenu et/ou de masse (selon l'usage d'un schéma bin ou d'un schéma bulk).
 
 Les resultats des modèles sont ensuite récupérés dans distibution.py.
 
 Enfin celui-ci fait appel à affichage.py pour afficher les resultats.
+<<<<<<< HEAD
+
+### Stockage des figures dans "fig"
+
+Ce dossier contient les figures produites par les scripts. Il existe cependant une option à spécifier au moment de l'appel permettant de les produire dans un dossier "fig" situé ailleurs. 
+Les fichier seront enregistrés dans un chemin sous la forme nom_du_modèle/paramètre_suivi.png.
+Attention, il est nécessaire pour leur enregistrement que les répértoires nom_du_modèle soient créés avant l'execution des modèles.
+
+### Documents annexes
+
+=======
+>>>>>>> 7045e4725c197fdfffefa1934c8ca9eb93ca79e5
