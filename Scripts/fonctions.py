@@ -15,13 +15,14 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
-from scipy.integrate import quad
+from scipy.integrate import quad, dblquad
 from scipy.optimize import brentq
 from scipy import integrate
 from collections import deque
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
+from scipy.special import gamma
 
 ### Classes and functions definition ###
 
@@ -110,34 +111,79 @@ class Eq :
         return Vitesse
 
     def Gamma_Masse(self, M, lam):
-        return (((M/self.a)**((1/self.b)-1))*self.Gamma(((M/self.a)**(1/self.b)), lam)/(self.a*self.b))
+        if M <= 0:
+            return 0.0
+        x = (M/self.a)**(1/self.b)
+        log_val = ((1/self.b)-1)*np.log(M/self.a) - np.log(self.a*self.b)
+        return np.exp(log_val) * self.Gamma(x, lam)
+    
+    def Massemin_Massemax(self, lam):
+        # fonction de répartition via changement de variable
+        def Fct(M):
+            if M <= 0:
+                return 0.0
+            x = (M/self.a)**(1/self.b)
+            return quad(lambda t: self.Gamma(t, lam), 0, x)[0]
+    
+        # échelle naturelle
+        x_high = 1/lam
+        while quad(lambda t: self.Gamma(t, lam), 0, x_high)[0] < 0.999:
+            x_high *= 2
+    
+        M_high = self.a * x_high**self.b
+    
+        Massemin = brentq(lambda M: Fct(M) - 0.1, 0, M_high)
+        Massemax = brentq(lambda M: Fct(M) - 0.9, 0, M_high)
+        return Massemin, Massemax
+    
 
     def Vitesse_Masse(self, M):
         return (self.c*((M/self.a)**(self.d/self.b)))
-
+    
+    
+    """
     def Massemin_Massemax(self, lam):
         def Fct(M):
             return quad(self.Gamma_Masse, 0, M, args=(lam))[0]
- 
+        print("intégrale :    ", quad(self.Gamma_Masse, 0, np.inf, args=(lam)))
+        print("lambda  :    ", lam)
         M_high = 1/lam
-        while Fct(M_high) < 0.999:
+        while Fct(M_high) < 0.9:
             M_high *= 2
         Massemin = brentq(lambda M: Fct(M) - 0.01, 0, M_high)
         Massemax = brentq(lambda M: Fct(M) - 0.999, 0, M_high)
  
         return Massemin, Massemax
-        
+    """
     def Liste_Massemin_Massemax(self, Liste_Lanbda):
+
         Liste_Lanbda=np.array(Liste_Lanbda)
-        indices_nan = np.array([i for i, x in enumerate(Liste_Lanbda) if np.isnan(x)])
+
+        mask_nan=np.isnan(Liste_Lanbda)
+        Liste_M=np.full((len(Liste_Lanbda), 2), np.nan)
+
+        for i, lam in enumerate(Liste_Lanbda):
+            if not np.isnan(lam):
+                mmin, mmax=self.Massemin_Massemax(lam)
+                Liste_M[i]=[mmax, mmin]
+
+        return Liste_M
+        
+
+        """"
+        indices_nan = np.where(np.isnan(Liste_Lanbda), 0, Liste_Lanbda)
         Liste_Lanbda_sans_nan = np.array([x for x in Liste_Lanbda if not np.isnan(x)])
         Liste_M=[self.Massemin_Massemax(elem)[::-1] for elem in Liste_Lanbda_sans_nan]
         Liste_M_avec_nan = Liste_M.copy()
         for i in indices_nan:
             Liste_M_avec_nan.insert(i, (np.nan, np.nan))
         Liste_M_avec_nan=np.array(Liste_M_avec_nan)
+        print("ça c'est la liste masse min masse max", Liste_M_avec_nan)
         return Liste_M_avec_nan
-    
+        """
+
+
+
     def Liste_Vitesse_Masse(self, Liste_lanbda):
         Liste_M=np.array(self.Liste_Massemin_Massemax(Liste_lanbda))
         Vitesse=self.Vitesse_Masse(Liste_M)
@@ -279,6 +325,74 @@ class Eq :
             integrale.append(integrale_entre_d_i_et_d_i_plus_1)
         return integrale
     
+    def contenu_to_conc(self,rho_r):
+        return self.C * (rho_r/(self.a*self.C*self.G(self.b)))**(self.x/(self.x-self.b))
+    
+    
+#    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
+        #h1 : hauteur de l'interface du haut de la maille de départ
+        #h2 : hauteur de l'interface du bas de la maille de départ
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #type : choisir "concentration" pour faire tomber la concentration ou "masse" pour la masse
+        #dt : pas de temps
+
+#
+#        if type == "concentration" : 
+#            sigma = 1
+#            beta = 0
+#
+#        if type == "masse" :
+#            sigma = self.a
+#            beta = self.b
+#
+#        integrale = dblquad(lambda x, y: N*sigma*(y**beta)*((self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(y**(self.alpha*self.nu-1))*np.exp(-((lam*y)**self.alpha))), h3, h4, lambda x : (((x-h1)/(dt*self.c))**(1/self.d)), lambda x : (((x-h2)/(dt*self.c))**(1/self.d)))
+#        print('val int : ', integrale)
+#        new_val = integrale/(h2-h1)
+#
+#        return new_val
+
+
+
+    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
+        #h1 : hauteur de l'interface du haut de la maille de départ
+        #h2 : hauteur de l'interface du bas de la maille de départ
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #type : choisir "concentration" pour faire tomber la concentration ou "masse" pour la masse
+        #dt : pas de temps
+        f = lambda D,h,sigma,beta,N : N*sigma*D**beta*self.alpha/gamma(self.nu)*lam**(self.alpha*self.nu)*D**(self.alpha*self.nu-1)  * np.exp(-(lam*D)**self.alpha)
+            
+        if h2==h4:
+            if type == "concentration" : 
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(1,0,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
+
+            if type == "masse" :
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(self.a,self.b,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
+
+        if type == "concentration" : 
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(1,0,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
+
+            return new_val
+
+        if type == "masse" :
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(self.a,self.b,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
+
+            return new_val
     def content_to_conc_bulk_1M(self,rho_r):
         return self.C * self.Lanbda_1M(rho_r)**(self.x)
     
@@ -396,6 +510,14 @@ class profil_rho_r:
         rho_r = rho * r
 
         return rho_r,rho
+    
+
+
+
+
+
+
+
 
 
 

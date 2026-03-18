@@ -28,7 +28,7 @@ class Model_bl_def():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 700  # length of simulation in seconds
+        self.length_sim = 10000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
@@ -179,7 +179,7 @@ class Model_bl_def():
 
 
         # Les masses
-        Masse= sum(rho_r_mass/self.dz)
+        Masse= sum(rho_r_mass*self.dz)
         list_mass_tot = [Masse]
         
         #Les précip
