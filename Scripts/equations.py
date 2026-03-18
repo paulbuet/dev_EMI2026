@@ -12,7 +12,7 @@
 
 from math import *
 import numpy as np
-from scipy.integrate import quad
+from scipy.integrate import quad, dblquad
 from scipy.optimize import brentq
 from scipy import integrate
 
@@ -185,6 +185,51 @@ class Eq :
 
         return self.C * (rho_r/(self.a*self.C*self.G(self.b)))**(self.x/(self.x-self.b))
     
+    def Liste_Lanbda_1_mom(self, liste_rho_r):
+        liste_rho_r=np.array(liste_rho_r)
+        Gam=self.G(self.b)
+        l_lam_1_mom=(liste_rho_r/(self.a*self.C*Gam))**(1/(self.x-self.b))
+        return l_lam_1_mom
+    
+    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
+        #h1 : hauteur de l'interface du haut de la maille de départ
+        #h2 : hauteur de l'interface du bas de la maille de départ
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #type : choisir "concentration" pour faire tomber la concentration ou "masse" pour la masse
+        #dt : pas de temps
+        f = lambda D,h,sigma,beta,N : N*sigma*D**beta*self.alpha/gamma(self.nu)*lam**(self.alpha*self.nu)*D**(self.alpha*self.nu-1)  * np.exp(-(lam*D)**self.alpha)
+            
+        if h2==h4:
+            if type == "concentration" : 
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(1,0,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
+
+            if type == "masse" :
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(self.a,self.b,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
+
+        if type == "concentration" : 
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(1,0,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
+
+            return new_val
+
+        if type == "masse" :
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(self.a,self.b,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
+
+            return new_val
+    
 
 class Selection:
 
@@ -192,6 +237,7 @@ class Selection:
         
 
         self.Eq_config = Eq(esp)
+
 
         # On initialise les constantes requises suivant l'espèce
 
@@ -233,25 +279,24 @@ class Selection:
 
         return Dmin, Dmax
     
-    def Classe_D(self, nb_classes, Dmin, Dmax, N, lam):
-        """
-        fonction qui retourne la distribution du nombre de particule par diamètre en fonction du nombre de classe voulu (int, sans unité), 
-        du diamètre minimal (float, en m) et du diamètre maximal (float, en m)
-        ainsi que de la concentration de particules dans la maille (en kg.m-3) et du lambda de cette maille
-        """
-
+    def Classe_D_N(self, nb_classes, Dmin, Dmax, N, lam):
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes # On calcule un intervalle régulier de bin
-
-        for i in range(nb_classes): # On itère par diamètre
-
-            # On calcule le diamètre de ce bin et sa proportion associé
-            Di=(1+2*i)*Intervalle/2 + Dmin 
-            P_i=quad(self.Eq_config.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98 # On divise par 0.98 pour la conservation 
-
-
-            Ni=N*P_i # On multiplie la proportion au nombre de particules total dans la maille
-
+        Intervalle=(Dmax-Dmin)/nb_classes
+        for i in range(nb_classes):
+            Di=(1+2*i)*Intervalle/2 + Dmin
+            
+            P_i=quad(self.Eq_config.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
-
+        return Result
+    
+    def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
+        Result=[]
+        Intervalle=(Dmax-Dmin)/nb_classes
+        for i in range(nb_classes):
+            Di=(1+2*i)*Intervalle/2 + Dmin
+            
+            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            rho_r_i=N*P_i
+            Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result

@@ -3,7 +3,7 @@ from box_lagrangien_vectorised import Model_bl
 from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
-from teste_def_2 import model_bl_def_3 
+from box_lagrangien_def import model_bl_def_3 
 """
 from phyex import Eule, Eule2, Stat
 """
@@ -98,24 +98,11 @@ class distribution:
                         results = model_config.run()
                         concentration_formate = np.array(results[0]).sum(axis=1)
 
-                        mass_form = np.array(results[2])
+                        mass_form = np.array(results[2]).sum(axis=1)
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig)
                         Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig)
                         Affichage.Affichage_Precipitation(results[1], model, path_fig) 
-                        Affichage.Affichage_Precipitation(results[1], model, path_fig)
                         Affichage.Afficher()
-
-            if model == "New_Model" :
-                model_config = Model_bl_def_2(number_stitches,esp,r,N,CFL,time_step, duree_simu)
-
-                profil = model_config.run()
-                concentration_formate = np.array(profil[0]).sum(axis=1)
-
-                mass_form = np.array(profil[2]).sum(axis=1)
-
-                Affichage.Affichage_Concentration(concentration_formate, "concentration", model)
-                Affichage.Affichage_Concentration(mass_form, "masse", model)
-                Affichage.Affichage_Precipitation(profil[1], model)
 
             elif model in ('EULE', 'EULE2', 'STAT'):
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
