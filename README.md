@@ -28,18 +28,26 @@ chargé de l'appel des modèles en fonction des informations reçues de l'utilis
 
 Une fois les informations fournies à distribution, ce script appelle le script du modèle correspondant. Parmi ces scripts on retrouve :
 
-
+<ul>
+<li>
 box_lagrangien.py (modèle par défaut à largeur de boite fixe et utilisant la méthode d'avance temporelle Step_By_Step)
-
+</li>
+<li>
 box_lagrangien_vectorized.py (même modèle que ci-dessus mais incluant de légères modifications concernant la vectorisation des porcédés)
-
+</li>
+<li>
 box_lagrangien_sf.py (modèle à largeur de boite fixe utilisant la méthode d'avance temporelle Step_Forward)
-
+</li>
+<li>
 box_lagrangien_sf_vectorized.py (même modèle que ci-dessus mais intégrant de légères modifications concernant la vectorisation des porcédés)
-
-phyex.py (code d'interfaçage permettant de lancer les modèles <br>EULE, EULE2 et STAT </br>en utilisant les mêmes formats de données et les mêmes conditions initiales)
-
+</li>
+<li>
+phyex.py (code d'interfaçage permettant de lancer les modèles EULE, EULE2 et STAT en utilisant les mêmes formats de données et les mêmes conditions initiales)
+</li>
+<li>
 box_lagrangien_def.py (modèle à largeur de boite variable utilisant la méthode d'avance temporelle Step_By_Step)
+
+</ul>
 
 
 Les modèles appellent tous condi_init.py pour initialiser les prodils de contenu et/ou de masse (selon l'usage d'un schéma bin ou d'un schéma bulk).
