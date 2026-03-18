@@ -46,7 +46,7 @@ phyex.py (code d'interfaçage permettant de lancer les modèles EULE, EULE2 et S
 </li>
 <li>
 box_lagrangien_def.py (modèle à largeur de boite variable utilisant la méthode d'avance temporelle Step_By_Step)
-
+</li>
 </ul>
 
 
