@@ -61,11 +61,11 @@ class Affichage :
 
         time=np.linspace(1, len(Precip), len(Precip))
         time2 = time -(time[1]-time[0])/2
-        ax1.bar(time2, Precip, color="blue", label="Cumul")
+        ax1.bar(time2, Precip, color="blue", label="Précip par pas de temps")
         ax1.set_xlabel("temps", fontsize=18)
         ax1.set_ylabel("Précip par pas de temps", fontsize=18)
         ax2 = ax1.twinx()
-        ax2.plot(time, Cumul, '--', color="red", label="Précip par pas de temps")
+        ax2.plot(time, Cumul, '--', color="red", label="Cumul")
         ax2.set_ylabel('Cumul', fontsize=18)
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')

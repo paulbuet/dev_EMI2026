@@ -62,7 +62,7 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r=r)
    
         self.grid0 = condi_init.data
 
