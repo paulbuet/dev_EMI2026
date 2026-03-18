@@ -22,6 +22,7 @@ from collections import deque
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
+from scipy.special import gamma
 
 ### Classes and functions definition ###
 
@@ -312,7 +313,7 @@ class Eq :
         return self.C * (rho_r/(self.a*self.C*self.G(self.b)))**(self.x/(self.x-self.b))
     
     
-    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
+#    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
         #h1 : hauteur de l'interface du haut de la maille de départ
         #h2 : hauteur de l'interface du bas de la maille de départ
         #h3 : hauteur de l'interface du haut de la maille de d'arrivée
@@ -321,22 +322,61 @@ class Eq :
         #type : choisir "concentration" pour faire tomber la concentration ou "masse" pour la masse
         #dt : pas de temps
 
+#
+#        if type == "concentration" : 
+#            sigma = 1
+#            beta = 0
+#
+#        if type == "masse" :
+#            sigma = self.a
+#            beta = self.b
+#
+#        integrale = dblquad(lambda x, y: N*sigma*(y**beta)*((self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(y**(self.alpha*self.nu-1))*np.exp(-((lam*y)**self.alpha))), h3, h4, lambda x : (((x-h1)/(dt*self.c))**(1/self.d)), lambda x : (((x-h2)/(dt*self.c))**(1/self.d)))
+#        print('val int : ', integrale)
+#        new_val = integrale/(h2-h1)
+#
+#        return new_val
+
+
+
+    def calcul_maille_arrivee(self, h1, h2, h3, h4, N, type, dt, lam) :
+        #h1 : hauteur de l'interface du haut de la maille de départ
+        #h2 : hauteur de l'interface du bas de la maille de départ
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #type : choisir "concentration" pour faire tomber la concentration ou "masse" pour la masse
+        #dt : pas de temps
+        f = lambda D,h,sigma,beta,N : N*sigma*D**beta*self.alpha/gamma(self.nu)*lam**(self.alpha*self.nu)*D**(self.alpha*self.nu-1)  * np.exp(-(lam*D)**self.alpha)
+            
+        if h2==h4:
+            if type == "concentration" : 
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(1,0,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
+
+            if type == "masse" :
+                integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : 0,args=(self.a,self.b,N))[0]
+                #print('val int : ', integrale)
+                new_val = integrale/(h2-h1)
+
+                return new_val
 
         if type == "concentration" : 
-            sigma = 1
-            beta = 0
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(1,0,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
+
+            return new_val
 
         if type == "masse" :
-            sigma = self.a
-            beta = self.b
+            integrale = -dblquad(f, h3, h4, lambda h : (((h-h1)/(dt*self.c))**(1/self.d)), lambda h : (((h-h2)/(dt*self.c))**(1/self.d)),args=(self.a,self.b,N))[0]
+            #print('val int : ', integrale)
+            new_val = integrale/(h2-h1)
 
-        integrale = dblquad(lambda x, y: N*sigma*(y**beta)*((self.alpha/gamma(self.nu))*(lam**(self.alpha*self.nu))*(y**(self.alpha*self.nu-1))*np.exp(-((lam*y)**self.alpha))), h3, h4, lambda x : (((x-h1)/(dt*self.c))**(1/self.d)), lambda x : (((x-h2)/(dt*self.c))**(1/self.d)))
-        print('val int : ', integrale)
-        new_val = integrale/(h2-h1)
-
-        return new_val
-
-
+            return new_val
 
 
 """
