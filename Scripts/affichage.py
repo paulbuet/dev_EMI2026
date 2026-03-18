@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
+from matplotlib.colors import Normalize, LogNorm
 
 
 
@@ -29,7 +30,8 @@ class Affichage :
         plt.figure(figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
-        plt.pcolormesh(Transpose,cmap=reversed_map)
+        norm = Normalize(vmin=0,vmax = max(Concentration[0]))
+        plt.pcolormesh(Transpose,cmap=reversed_map, norm=norm)
         plt.title(f"{typ} : évolution dans le temps", fontsize=22)
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)

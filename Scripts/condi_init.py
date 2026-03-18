@@ -25,6 +25,7 @@ from pathlib import Path
 
 from equations import Eq
 from equations import Selection
+from formatage import Formatage
 
 def gaussienne (m, sigma,h):
         return (1/(sigma*np.sqrt(2*np.pi))) * exp (-1/2 * ((h-m)/sigma)**2)
@@ -86,7 +87,13 @@ class InitialCond :
 
     '''
     
-    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 10, r = 0.0001, N = 1) :
+
+    def __init__(self, nb_grid, esp, types, mode = "simple", Hmax = 5000, sigma = 2000, nb_classes = 300, r = 0.001) :
+        eq=Eq(esp)
+        form = Formatage(esp)
+        selec = Selection(esp)
+
+
 
         if types == "bin":
 
@@ -104,26 +111,77 @@ class InitialCond :
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
             if mode == "simple" :
-                concentration_profile = [0 for i in range (nb_levels)]
-                concentration_profile [-1] = 1
+                relative_profile = [0 for i in range (nb_levels)]
+                relative_profile [-1] = 1
             if mode == "gauss" :
-                concentration_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
+                relative_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile = np.array(concentration_profile) * r*1.2
+            # Vérification : Affichage des profils relatifs (à décommenter)
+            # x = [self.grid[i] for i in range(nb_levels)]
+            # y = relative_profile
+            # plt.plot(x,y)
+            # plt.show()
 
-            eq=Eq(esp)
-            selec = Selection(esp)
-            lam = eq.Lanbda (self.rho_r_profile[-1], N)
-            dmin, dmax = selec.Dmin_Dmax(lam)
-            self.bin_concentration = selec.Classe_D (nb_classes, dmin, dmax, N, lam) # division in n bins
 
-            bin_profile = [np.array(concentration_profile) * self.bin_concentration[i][1] for i in range(len(self.bin_concentration))] # computinng of the n bin profiles
-            data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bin_profile[ind_bin]) for ind_bin in range(len(self.bin_concentration))}
+            self.r_profile = np.array(relative_profile)*r
 
-            data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.bin_concentration[ind_bin][0] for ind_bin in range(len(self.bin_concentration))} # addition of the diameters
+            self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
+
+            
+            lam = eq.Liste_Lanbda_1_mom(self.rho_profile)
+            dmin, dmax = 10e-8, 0.01
+            
+            N_profile = eq.contenu_to_conc(self.rho_r_profile)
+            # N_profile = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
+
+            levels_bin_concentrations_splittings= [selec.Classe_D_N (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
+            levels_bin_contents_splittings= [selec.Classe_D_rho_r (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
+
+            # Vérification : Affichage des profils des bins (à décommenter)
+            # x = [self.grid[i] for i in range(nb_levels)]
+            # y = self.bin_concentration[0][1]*np.array(relative_profile)
+            # print(self.bin_concentration)
+            # plt.plot(x,y)
+            # plt.show()
+            # print (bins)
+            print(levels_bin_concentrations_splittings)
+
+            bins_concentrations_profiles = [[splitting[ind_bin][1] if splitting != " " else 0 for splitting in levels_bin_concentrations_splittings] for ind_bin in range(nb_classes)] # computinng of the n bin profiles
+            data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bins_concentrations_profiles[ind_bin]) for ind_bin in range(nb_classes)}
+
+            self.diameters = [[splitting for splitting in form.find_diameters_in_splittings(levels_bin_concentrations_splittings)][0][ind_bin][0] for ind_bin in range(nb_classes)]
+            data_vars2 = {f"diameter_bin_{ind_bin+1}" : self.diameters[ind_bin] for ind_bin in range(nb_classes)} # addition of the diameters
+            
+            bins_rho_r_profiles = [[splitting[ind_bin][1] if splitting != " " else 0 for splitting in levels_bin_contents_splittings] for ind_bin in range(nb_classes)]
+            data_vars3 = {f"rho_r_bin_{ind_bin+1}" : ("level",bins_rho_r_profiles[ind_bin][:]) for ind_bin in range(nb_classes)}
+
             data_vars1.update(data_vars2)
+            data_vars1.update(data_vars3)
+
+            # print (f" splitting {levels_bin_concentrations_splittings}")
+            # print (f" relative profile {relative_profile}")
+            # print (f" N profile {N_profile}")
+            # print (f" rho_r profile {self.rho_r_profile}")
+            # print (f" bins N profiles {bins_concentrations_profiles}")
+            # print (f" bins rho_r profiles {bins_rho_r_profiles}")
+            # print (f" rho {self.rho_profile}")
+            # print (f" lambda {lam}")
+            # print (f" diameters {self.diameters}")
+
+            # x = [self.grid[i] for i in range(nb_levels)]
+            # for i in range(nb_classes):
+            #   y = bins_rho_r_profiles[i]
+            #   plt.plot(x,y)
+            # plt.show()
+            # for i in range(nb_classes):
+            #   y = bins_conentrations_profiles[i]
+            #   plt.plot(x,y)
+            # plt.show()
 
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
+
+            # print (self.data["rho_r_bin_1"])
+            # print ("OK")
 
         else:
 
@@ -141,27 +199,26 @@ class InitialCond :
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
             if mode == "simple" :
-                r_profile = [ 0 for i in range(nb_levels)]
-                r_profile[-1] = 1
+                relative_profile = [ 0 for i in range(nb_levels)]
+                relative_profile[-1] = 1
+                #relative_profile[-2] = 1/2
+
 
             if mode == "gauss" :
-                r_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
+                relative_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,r_profile)
-
-        
-            self.rho_r_profile *= r
-
-            concentration_profile = Eq(esp).contenu_to_conc(self.rho_r_profile)
+            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,np.array(relative_profile)*r)
 
             eq=Eq(esp)
 
+            N_profile = eq.contenu_to_conc(self.rho_r_profile)
 
-            bin_profile = np.array(concentration_profile)   # computinng of the n bin profiles
-            data_vars1 = {"concentration" : ("level", bin_profile), "rho_r": ("level",self.rho_r_profile)}
+            bulk_profile = np.array(N_profile)   # computinng of the n bin profiles
+            data_vars1 = {"concentration" : ("level", bulk_profile), "rho_r": ("level",self.rho_r_profile)}
 
 
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
+        
 
 
 ### Tests and verifications ###

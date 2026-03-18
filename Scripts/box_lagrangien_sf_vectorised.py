@@ -13,7 +13,7 @@ import xarray_regrid
 from tqdm import tqdm
 
 # On importe ici les classes extèrieures
-from fonctions import InitialCond
+from condi_init import InitialCond
 from equations import Eq
 
 class Model_bl_sf():
@@ -28,7 +28,7 @@ class Model_bl_sf():
 
         N = number_particules
 
-        self.length_sim = 200  # length of simulation in seconds
+        self.length_sim = 2000  # length of simulation in seconds
 
         self.delta_t = delta_t # length of time step in seconds
 
