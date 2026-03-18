@@ -13,7 +13,7 @@ import xarray_regrid
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
-from fonctions import Eq
+from equations import Eq
 
 class Model_bl():
    
@@ -39,25 +39,37 @@ class Model_bl():
         # Ajouter le calcul des différents diamètres dans une liste self.diameter
 
         """
-        grid is in the form of a numpy array of size nb_mesh*(variables*2):
+        grid0 is in the form of a numpy dataset of size nb_mesh*(nb_diam*2):
 
         concentration_bin_1 : number of particles with diameter 1 in each level: N0(1)  N1(1)  N2 (1)  N3(1) ...
         ...
         concentration_bin_i : number of particles with diameter i in each level: N0(i)  N1(i)  N2 (i)  N3(i) ...
         ...
         concentration_bin_n : number of particles with diameter n in each level: N0(n)  N1(n)  N2 (n)  N3(n) ...
-
+        ...
+        diameter_bin_1 : mean diameter in the first bin: D1
+        ...
+        diameter_bin_i : mean diameter in the i-th bin: Di
+        ...
+        diameter_bin_n : mean diameter in the n-th bin: Dn
+        ...
+        rho_r_bin_1 : rho_r of particles with diameter 1 in each level: Rho_r_1 (1)  Rho_r_2 (1)  Rho_r_3 (1) Rho_r_4 (1) ...
+        ...
+        rho_r_bin_i : rho_r of particles with diameter i in each level: Rho_r_1 (i)  Rho_r_2 (i)  Rho_r_3 (i) Rho_r_4 (i) ...
+        ...
+        rho_r_bin_n : rho_r of particles with diameter n in each level: Rho_r_1 (n)  Rho_r_2 (n)  Rho_r_3 (n) Rho_r_4 (n) ...
+        
         level : height of upper mesh interfaces: Z0  Z1  Z2  Z3  ...
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,N=N,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init)
    
         self.grid0 = condi_init.data
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.bin_concentration)[:,0]
+        self.size_diam = np.array(condi_init.diameters)
 
         # Initialisation of variables
 
@@ -75,7 +87,7 @@ class Model_bl():
         self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
         self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
-        self.list_mass = [[self.grid0[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]) for diam in range(1,self.nb_diam+1)]]
+        self.list_mass = [[self.grid0[f"rho_r_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]]
         
    def mass(self,grid,var, diam):
        return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])

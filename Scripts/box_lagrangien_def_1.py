@@ -49,7 +49,7 @@ class Model_bl_def():
         
         """
    
-        condi_init = InitialCond(number_stitches, esp, "bulk", mode = mode, r = 0.00001, N = number_particules)
+        condi_init = InitialCond(number_stitches, esp, "bulk", mode = mode, r = 0.00001)
    
         self.grid0 = condi_init.data
 

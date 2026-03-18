@@ -11,15 +11,15 @@ import numpy as np
 
 # On importe les classes nécessaires
 from fonctions  import InitialCond as IC
-from fonctions import Eq
-from fonctions import Affichage
+from equations import Eq
+from formatage import Formatage 
 
 class model_bl_def_3:
 
-    def __init__(self,nb_stitches,esp,r,N,CFL,time_step):
+    def __init__(self,nb_stitches,time_step,esp,r,mode):
         
         # On configure le modèle avec les données d'entrée
-        condi_config = IC(nb_stitches, esp, "Bulk", mode = "simple", r = r, N = N)
+        condi_config = IC(nb_stitches, esp, "Bulk", mode = mode, r = r)
         self.Eq_config = Eq(esp)
 
         # On récupère les concentrations et le profil de rho_r et de rho
@@ -43,10 +43,17 @@ class model_bl_def_3:
         self.time_step = time_step
 
         # On calcule la liste des diamètre necessaire pour la sédimentation des mailles
-        self.epaiss_maille = [h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(nb_stitches)]
+        self.epaiss_maille = np.array([h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(nb_stitches)])
 
-        dist_maille = np.array(self.Eq_config.Epaiss_to_diam(h_interfaces))
 
+        dist_maille = np.array(Formatage(esp).Epaiss_to_diam(h_interfaces))
+
+        for i in range(1,len(dist_maille)):
+
+            dist_maille[i,:i] -= dist_maille[i,i-1]/2
+
+        print(dist_maille)
+                       
         self.diam_dist = [self.Eq_config.calcul_diametre(dist_maille[stitch],time_step) for stitch in range(len(dist_maille))]
 
     def run(self):
@@ -57,7 +64,7 @@ class model_bl_def_3:
 
         rho_r_profil = self.grid_0["rho_r"].values
         concentration_profil = self.grid_0["concentration"].values
-        print(sum(concentration_profil))
+
 
         Liste_rho_r = [rho_r_profil]
         Liste_concentration = [concentration_profil]
@@ -126,6 +133,7 @@ class model_bl_def_3:
             chute_tot.append(chute_tot_int)
             Liste_rho_r.append(rho_r_profil_dt)
             Liste_concentration.append(concentration_profil_dt)
+            Liste_precip.append(chute_mass_dt)
 
             rho_r_profil = rho_r_profil_dt
             concentration_profil = concentration_profil_dt
@@ -133,13 +141,7 @@ class model_bl_def_3:
         print(sum(chute_tot)+sum(concentration_profil))
 
 
-        Affichage.Affichage_Concentration(Liste_concentration,"concentration","Box_Lagrangien","./fig")
-        Affichage.Affichage_Concentration(Liste_rho_r,"masse","Box_Lagrangien","./fig")
+        return Liste_concentration, Liste_precip, Liste_rho_r
 
         
         
-
-
-dodo = model_bl_def_3(100,"r",0.001,10000,"Yes",100)
-
-print(dodo.run())

@@ -14,6 +14,7 @@ import os
 import tempfile
 import numpy
 import f90nml
+import numpy as np
 
 # On importe ici les classes extèrieures
 from fonctions import InitialCond
@@ -26,16 +27,14 @@ class Phyex():
     """
     Generic class to call the different sedimentation schemes of PHYEX
     """
-    def __init__(self, method, number_stitches, number_bin, number_particules,
+    def __init__(self, method, number_stitches, number_bin,
                  delta_t, speed_max, esp, CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
-
         self.method = method
         self.number_stitches = number_stitches
-        N = number_particules
         self.length_sim = 200  # length of simulation in seconds
         self.delta_t = delta_t # length of time step in seconds
         self.nb_step = self.length_sim // self.delta_t  # number of time step
@@ -45,14 +44,15 @@ class Phyex():
         # Geometry and initial content
 
         if method == "EULE2" :
-            condi_init = InitialCond(self.number_stitches, esp, "bin", nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
+            condi_init = InitialCond(self.number_stitches, esp, "bin", nb_classes=1,mode=type_init)
+            
         else :
-            condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1, N=N, rho_r=1.E-4,mode=type_init)
+            condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
+            self.N_profile = np.array(condi_init.data["concentration"])
+            self.rho_r_profile = np.array(condi_init.data["rho_r"])
+
         self.vertical_boundaries = condi_init.levels_boundaries
         self.levels = condi_init.grid
-
-        self.rho_r_profile = condi_init.rho_r_profile
-        self.concentration_profile = condi_init.concentration_profile
 
         # Initialisation of variables
         self.water_on_floor = 0.  # Mass of water wich has touched the ground
@@ -116,7 +116,7 @@ class Phyex():
         PCT = numpy.ndarray((KRR, NKT, NIJT))
         for k in range(KRR):
             PRT[k] = self.rho_r_profile.reshape((NKT, 1))
-            N_profile = numpy.array(self.concentration_profile).reshape(NKT,1)
+            N_profile = numpy.array(self.N_profile).reshape(NKT,1)
             #print (numpy.shape(numpy.array(self.concentration_profile).reshape(NKT,1)))
             PCT[k] = N_profile   ### Should be the N profile
         PRS = PRT / self.delta_t
@@ -125,7 +125,7 @@ class Phyex():
         PQCS = PQRS = PQIS = PQSS = PQGS = PEFIELDW = numpy.zeros((NKT, NIJT))
         PCONC3D = numpy.zeros((NKT, NIJT))
 
-        r_profile = []
+        rho_r_profile = []
         ct_profile = []
 
         for _ in range(self.nb_step):
@@ -147,7 +147,7 @@ class Phyex():
                     PCT[i + 1] = PCS[i + 1] * self.delta_t
                     PRT[i + 1] = PRS[i + 1] * self.delta_t
                     if self.esp == spec :
-                        r_profile.append(PRT[i+1, :, 0])
+                        rho_r_profile.append(PRT[i+1, :, 0])
                         ct_profile.append(PCT[i+1, :,0])
             else:
                 result = PYICE4_SEDIMENTATION(NIJT, NKT, 1, 0, False, False, self.delta_t, KRR,
@@ -166,8 +166,9 @@ class Phyex():
                 for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
                     if self.esp == spec:
                         PCT[i + 1] = PRT[i+1] # r profile at the end of the timestep
-                        r_profile.append(PRT[i+1, :, 0])
+                        rho_r_profile.append(PRT[i+1, :, 0])
                         ct_profile.append(PCT[i+1, :, 0])
+
         #print (f"{i} : PCT {PCT[0]} ")
         #print(len(PRT[0]))
         #print(PRT[0][0])
@@ -175,10 +176,10 @@ class Phyex():
         #print(f"inst{inst}")
         #print(self.nb_step)
 
-        self.r_profile = r_profile
+        self.rho_r_profile = rho_r_profile
         self.ct_profile = ct_profile
 
-        return self.wat_flo_on_time,self.rho_r_profile, self.r_profile, self.ct_profile
+        return self.wat_flo_on_time, self.rho_r_profile, self.ct_profile
 
 
 class Eule(Phyex):

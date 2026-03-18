@@ -28,7 +28,7 @@ class Model_bl_def_2:
         """
 
         # On configure le modèle avec les données d'entrée
-        condi_config = IC(nb_stitches, esp, "Bulk", mode = "simple", r = r, N = N)
+        condi_config = IC(nb_stitches, esp, "Bulk", mode = "simple", r = r)
         self.Eq_config = Eq(esp)
 
         # On récupère les concentrations et le profil de rho_r et de rho
