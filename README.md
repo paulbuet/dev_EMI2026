@@ -40,6 +40,7 @@ Les modèles appellent tous condi_init.py pour initialiser les prodils de conten
 Les resultats des modèles sont ensuite récupérés dans distibution.py.
 
 Enfin celui-ci fait appel à affichage.py pour afficher les resultats.
+<<<<<<< HEAD
 
 ### Stockage des figures dans "fig"
 
@@ -49,3 +50,5 @@ Attention, il est nécessaire pour leur enregistrement que les répértoires nom
 
 ### Documents annexes
 
+=======
+>>>>>>> 7045e4725c197fdfffefa1934c8ca9eb93ca79e5
