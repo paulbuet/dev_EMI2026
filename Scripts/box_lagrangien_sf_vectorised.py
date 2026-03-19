@@ -154,7 +154,9 @@ class Model_bl_sf():
         print (" ")
         print ("---------------------------------------")
 
-        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0):
+        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_Forward à {self.nb_diam} bins : ", position = 0):
+            
+            grid_dt = xr.Dataset(data_vars={}, coords = {"level" : self.grid0["level"]})
 
             list_data_bin = []
             list_mass_bin = []

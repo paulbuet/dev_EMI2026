@@ -144,7 +144,7 @@ class InitialCond :
             # plt.plot(x,y)
             # plt.show()
             # print (bins)
-            print(levels_bin_concentrations_splittings)
+            # print(levels_bin_concentrations_splittings)
 
             bins_concentrations_profiles = [[splitting[ind_bin][1] if splitting != " " else 0 for splitting in levels_bin_concentrations_splittings] for ind_bin in range(nb_classes)] # computinng of the n bin profiles
             data_vars1 = {f"concentration_bin_{ind_bin+1}" : ("level", bins_concentrations_profiles[ind_bin]) for ind_bin in range(nb_classes)}
