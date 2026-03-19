@@ -16,7 +16,7 @@ from equations import Eq
 from formatage import Formatage 
 
 
-class model_bl_def:
+class model_bl_def_sf:
 
     def __init__(self,nb_stitches,time_step,esp,r,mode):
         
@@ -73,16 +73,13 @@ class model_bl_def:
 
         print (" ")
         print ("---------------------------------------")
+        # On calcule lambda
+        Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
 
         for t_time in tqdm(range(self.nb_time_step), desc = f"Avancement total Box Lagrangien déformable Step_By_Step : ", position = 0):
-            chute_tot_int=0
             
-
-            # On calcule lambda
-
-            Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
-
-
+            chute_tot_int=0
+        
 
             concentration_profil_dt = np.zeros(len(self.epaiss_maille))
             rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
@@ -94,13 +91,14 @@ class model_bl_def:
                 
                 conc_profil_int = []
                 rho_r_profil_intermed = []
-                for stitch_arr in tqdm(range(stitch_dep+1)):
-                    conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "concentration", self.time_step, Lambda[stitch_dep])
-                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], rho_r_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])
-                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], rho_r_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
+                for stitch_arr in range(stitch_dep+1):
+                    conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "concentration", self.time_step*(t_time+1), Lambda[stitch_dep])
+                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["rho_r"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])
+                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["rho_r"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
                     chute_tot_int+= chute_int
+                    print(stitch_arr)
                     #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))

@@ -18,15 +18,13 @@ from equations import Eq
 
 class Model_bl_sf():
    
-   def __init__(self,number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
+   def __init__(self,number_stitches,number_bin,mixing_ratio,delta_t,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
 
         self.number_stitches = number_stitches
-
-        N = number_particules
 
         self.length_sim = 2000  # length of simulation in seconds
 
@@ -64,7 +62,7 @@ class Model_bl_sf():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r=mixing_ratio)
    
         self.grid0 = condi_init.data
 
@@ -103,7 +101,7 @@ class Model_bl_sf():
         Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
         """
 
-        shift = -V * dt   # On calcule le futur mouvement verticale
+        shift = -min(V,self.speed_max) * dt   # On calcule le futur mouvement verticale
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)

@@ -17,15 +17,13 @@ from equations import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,number_particules,delta_t,speed_max,esp,CFL,type_init):
+   def __init__(self, number_stitches,number_bin,mixing_ratio,delta_t,speed_max,esp,CFL,type_init):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
 
         self.number_stitches = number_stitches
-
-        N = number_particules
 
         self.length_sim = 1000  # length of simulation in seconds
 
@@ -63,7 +61,7 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init)
+        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r= mixing_ratio)
    
         self.grid0 = condi_init.data
 
@@ -97,7 +95,7 @@ class Model_bl():
         Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
         """
 
-        shift = -V * dt   # On calcule le futur mouvement verticale
+        shift = -min(V,self.speed_max) * dt   # On calcule le futur mouvement verticale
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
@@ -163,13 +161,6 @@ class Model_bl():
                 # speed is calculated
 
                 speed = Eq(self.esp).Vitesse(self.size_diam[diam-1])
-
-
-
-                if speed> self.speed_max:
-
-                    speed = self.speed_max
-
 
                 # Sedimentation is processed
 
