@@ -87,7 +87,6 @@ class model_bl_def_sf:
 
             concentration_profil_dt = np.zeros(len(self.epaiss_maille))
             rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
-           
             
 
             for stitch_dep in tqdm(np.where(concentration_profil!=0)[0], bar_format = format_affichage_level, desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False, colour = "green"):
@@ -97,12 +96,15 @@ class model_bl_def_sf:
                 rho_r_profil_intermed = []
                 for stitch_arr in range(stitch_dep+1):
                     conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "concentration", self.time_step*(t_time+1), Lambda[stitch_dep])
-                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["rho_r"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])
-                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["rho_r"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
+                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])
+                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
                     chute_tot_int+= chute_int
+<<<<<<< HEAD
                     # print(stitch_arr)
+=======
+>>>>>>> master
                     #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
