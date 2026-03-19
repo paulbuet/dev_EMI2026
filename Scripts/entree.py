@@ -141,7 +141,7 @@ parser.add_argument('-m','--model', help = "Choose between Box_Lagrangien, Semi_
 parser.add_argument('-s','--type_advance',help="Choose between Step_Forward and Step_By_Step", default="Step_By_Step",type=check_advance)
 parser.add_argument('-n','--number_stitches', help = "Pick a positif integer for the number of stitches", default = 100 , type=check_numb)
 parser.add_argument('-d','--deformable', help = "Choose bewteen Yes and No (deformable or not)", default="No", type=check_deformable)
-parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=2, type=check_numb)
+parser.add_argument('-b','--number_bin', help = "Pick a positif integer for the number of bin", default=10, type=check_numb)
 parser.add_argument('-r','--mixing_ratio', help = "Pick a positif number for the mixing ratio", default=0.001, type=check_pos)
 parser.add_argument('-t','--time_step', help = "Pick a positif integer for the time step", default=10, type=check_numb)
 parser.add_argument('-c','--CFL', help = "Choose bewteen Yes and No (CFL repected or not)", default='No', type=check_CFL)
