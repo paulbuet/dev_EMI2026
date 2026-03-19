@@ -101,11 +101,8 @@ class model_bl_def_sf:
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
                     chute_tot_int+= chute_int
-<<<<<<< HEAD
                     # print(stitch_arr)
-=======
->>>>>>> master
-                    #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                    # print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
                 conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))
