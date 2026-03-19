@@ -190,16 +190,17 @@ class Model_bl_sf():
 
                 list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
-                wat_flo_tot.append(self.water_on_floor)
+                wat_flo_tot.append(self.water_on_floor) 
                 
 
             self.list_mass.append(list_mass_bin)
-            self.wat_flo_on_time.append(sum(wat_flo_tot))
+            self.wat_flo_on_time.append(sum(wat_flo_tot)-sum(self.wat_flo_on_time))
             self.list_data.append(list_data_bin)
+        cont_to_mm = np.array(self.wat_flo_on_time)*  (self.vertical_boundaries[1]-self.vertical_boundaries[0])
 
         print ("---------------------------------------")
         print(" ")
             
-        return self.list_data,self.wat_flo_on_time,self.list_mass 
+        return self.list_data,cont_to_mm,self.list_mass 
 
 
