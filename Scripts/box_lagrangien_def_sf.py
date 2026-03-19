@@ -73,10 +73,14 @@ class model_bl_def_sf:
 
         print (" ")
         print ("---------------------------------------")
+
+        format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
+        format_affichage_level = "-> {desc} |{bar}| {n_fmt}/{total_fmt} niveaux  | {elapsed}<{remaining} |                                                                                           "
+
         # On calcule lambda
         Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
 
-        for t_time in tqdm(range(self.nb_time_step), desc = f"Avancement total Box Lagrangien déformable Step_By_Step : ", position = 0):
+        for t_time in tqdm(range(self.nb_time_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien déformable Step_Forward : ", position = 0, colour = 'blue'):
             
             chute_tot_int=0
         
@@ -85,7 +89,7 @@ class model_bl_def_sf:
             rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
             
 
-            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False):
+            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0], bar_format = format_affichage_level, desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False, colour = "green"):
                 
                 
                 conc_profil_int = []
@@ -97,7 +101,8 @@ class model_bl_def_sf:
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
                     chute_tot_int+= chute_int
-                    #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                    # print(stitch_arr)
+                    # print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
                 conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))

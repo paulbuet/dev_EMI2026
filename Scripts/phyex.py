@@ -15,13 +15,13 @@ import tempfile
 import numpy
 import f90nml
 import numpy as np
+from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from condi_init import InitialCond
 
 
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
-
 
 class Phyex():
     """
@@ -128,7 +128,13 @@ class Phyex():
         rho_r_profile = []
         ct_profile = []
 
-        for _ in range(self.nb_step):
+        print (" ")
+        print ("---------------------------------------")
+
+        format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
+        format_affichage_diam = "-> {desc} |{bar}| {n_fmt}/{total_fmt} bins  | {elapsed}<{remaining} |                                                                                           "
+
+        for _ in tqdm(range(self.nb_step), bar_format = format_affichage_time, desc = f"Avancement total {self.ccloud} ", position = 0, colour = 'blue'):
             inst = numpy.zeros((KRR, NIJT))
             if self.ccloud == 'LIMA':
                 for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
@@ -142,7 +148,7 @@ class Phyex():
                                                   PRHODREF, 0., P, T, numpy.zeros((NKT, NIJT)),
                                                   numpy.zeros((NKT, NIJT)), PRS[i + 1], PCS[i+ 1],
                                                   missingOUT=['PQS'])
-                    print('after sedim lima')
+                    # print('after sedim lima')
                     (_, _, _, PRS[i + 1], PCS[i + 1], inst[i + 1], _) = result
                     PCT[i + 1] = PCS[i + 1] * self.delta_t
                     PRT[i + 1] = PRS[i + 1] * self.delta_t
@@ -159,7 +165,7 @@ class Phyex():
                                               PEFIELDW, 0, PSEA=numpy.zeros((NIJT,)),
                                               PTOWN=numpy.zeros((NIJT,)),
                                               missingOUT=['PFPR', 'PINPRH'])
-                print('after sedim ice4')
+                # print('after sedim ice4')
                 (PTHS, PRS, inst[1], inst[2], inst[3],
                  inst[4], _, _, _, _, _) = result
                 PRT = PRS * self.delta_t
@@ -178,6 +184,8 @@ class Phyex():
 
         self.rho_r_profile = rho_r_profile
         self.ct_profile = ct_profile
+
+        print ("---------------------------------------")
 
         return self.wat_flo_on_time, self.rho_r_profile, self.ct_profile
 
