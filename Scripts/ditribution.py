@@ -1,12 +1,12 @@
 import numpy as np
+
 from box_lagrangien_vectorised import Model_bl
 from box_lagrangien_sf_vectorised import Model_bl_sf
 from box_lagrangien import Model_bl as Model_bl_old
 from box_lagrangien_sf import Model_bl_sf as Modelbl_sf_old
-from box_lagrangien_def import model_bl_def_3 
-"""
-from phyex import Eule, Eule2, Stat
-"""
+from box_lagrangien_def import model_bl_def
+from box_lagrangien_def_sf import model_bl_def_sf
+
 import time
 from pathlib import Path
 import os, sys
@@ -80,7 +80,7 @@ class distribution:
                         Affichage.Affichage_Precipitation(results[1], model, path_fig, type_advance)
                         Affichage.Afficher()
                     else:
-                        model_config = model_bl_def_3(number_stitches,time_step,esp,mixing_ratio,type_init)
+                        model_config = model_bl_def(number_stitches,time_step,esp,mixing_ratio,type_init)
 
                         profil = model_config.run()
                         concentration_formate = np.array(profil[0])
@@ -102,6 +102,17 @@ class distribution:
                         Affichage.Affichage_Concentration(concentration_formate, "concentration", model, path_fig, type_advance)
                         Affichage.Affichage_Concentration(mass_form, "masse", model, path_fig, type_advance)
                         Affichage.Affichage_Precipitation(results[1], model, path_fig, type_advance) 
+                        Affichage.Afficher()
+                    else :
+                        model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init)
+
+                        profil = model_config.run()
+                        concentration_formate = np.array(profil[0])
+
+                        mass_form = np.array(profil[2])
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig, type_advance)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance)
+                        Affichage.Affichage_Precipitation(profil[1], model, path_fig, type_advance)
                         Affichage.Afficher()
 
             elif model in ('EULE', 'EULE2', 'STAT'):
