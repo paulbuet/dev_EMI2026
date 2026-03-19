@@ -17,12 +17,13 @@ from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
 from matplotlib.colors import Normalize, LogNorm
+import os
 
 
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model, path_fig): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, chemin, time): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -32,15 +33,15 @@ class Affichage :
         reversed_map = orig_map.reversed()
         norm = Normalize(vmin=0,vmax = max(Concentration[0]))
         plt.pcolormesh(Transpose,cmap=reversed_map, norm=norm)
-        plt.title(f"{typ} : évolution dans le temps", fontsize=22)
+        plt.title(f"{typ} : évolution dans le temps, durée simu : {time}", fontsize=22)
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        file_location = Path(path_fig) / Path(model) / Path(typ) 
-        plt.savefig(str(file_location))
+        nom_fichier=f"Graphe de {typ} {chemin}"
+        plt.savefig(os.path.join(chemin, nom_fichier))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig):
+    def Affichage_Precipitation(Precip, chemin, time):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
@@ -67,11 +68,11 @@ class Affichage :
         ax2 = ax1.twinx()
         ax2.plot(time, Cumul, '--', color="red", label="Cumul")
         ax2.set_ylabel('Cumul', fontsize=18)
-        plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
+        plt.title(f"Evolution des précipitations par pas de temps et cumulée, durée simu : {time}", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        file_location = Path(path_fig) / Path(model) / "Précipitations.png"
-        plt.savefig(file_location)
+        nom_fichier=f"Précipitations {chemin}"        
+        plt.savefig(os.path.join(chemin, nom_fichier))
 
     def Afficher () :
         plt.show()
