@@ -89,7 +89,7 @@ class model_bl_def:
            
             
 
-            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False):
+            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],desc = f"Avancement total t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False):
                 
                 
                 conc_profil_int = []
