@@ -17,7 +17,7 @@ from affichage import Affichage
 class distribution:
     def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig):
         
-        chemin= os.path.join("./results", f"Model_{model}", f"Type_{type_advance}", f"Stitches_number_{number_stitches}", f"Time_step_{time_step}", )
+        chemin= os.path.join("./results", f"Model_{model}", f"Type_{type_advance}", f"Stitches_number_{number_stitches}", f"Time_step_{time_step}")
         os.makedirs(chemin, exist_ok=True)
 
         path_to_phyex = Path(path_phyex) / "PHYEX"
