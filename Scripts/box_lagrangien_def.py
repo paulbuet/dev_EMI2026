@@ -100,11 +100,12 @@ class model_bl_def:
                 for stitch_arr in range(stitch_dep+1):
                     conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "concentration", self.time_step, Lambda[stitch_dep])
                     rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])
-                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
-                    chute_tot_int+= chute_int
+                    
                     #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])*10000
+                chute_tot_int+= chute_int
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
                 conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))

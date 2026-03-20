@@ -63,6 +63,8 @@ class model_bl_def_sf:
         rho_r_profil = self.grid_0["rho_r"].values
         concentration_profil = self.grid_0["concentration"].values
 
+        concentration_profil0 = concentration_profil
+
 
         Liste_rho_r = [rho_r_profil]
         Liste_concentration = [concentration_profil]
@@ -95,14 +97,14 @@ class model_bl_def_sf:
                 conc_profil_int = []
                 rho_r_profil_intermed = []
                 for stitch_arr in range(stitch_dep+1):
-                    conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "concentration", self.time_step*(t_time+1), Lambda[stitch_dep])
-                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])
-                    chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], self.grid_0["concentration"].values[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])*10000/self.epaiss_maille[stitch_dep]
+                    conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1],concentration_profil0[stitch_dep], "concentration", self.time_step*(t_time+1), Lambda[stitch_dep])
+                    rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil0[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
-                    chute_tot_int+= chute_int
-                    # print(stitch_arr)
-                    # print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                    
+                    #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
+                chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil0[stitch_dep], "masse", self.time_step*(t_time+1), Lambda[stitch_dep])*10000
+                chute_tot_int+= np.nan_to_num(chute_int)
 
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
                 conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))
