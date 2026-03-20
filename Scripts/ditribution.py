@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from affichage import Affichage
 
 class distribution:
-    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig):
+    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig, diag):
 
         path_to_phyex = Path(path_phyex) / "PHYEX"
         sys.path.append(str(path_to_phyex))
