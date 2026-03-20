@@ -22,7 +22,7 @@ from matplotlib.colors import Normalize, LogNorm
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model, path_fig, type_advance): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, model, path_fig, type_advance,deformable): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -36,14 +36,12 @@ class Affichage :
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        if model == "Box_Lagrangien" :
-            file_location = Path(path_fig) / Path(model) / Path(type_advance) / Path(typ)
-        else :
-            file_location = Path(path_fig) / Path(model) / Path(typ) 
+        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable) / Path(typ)
         plt.savefig(str(file_location))
+        plt.close()
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance):
+    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
@@ -73,11 +71,9 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        if model == "Box_Lagrangien" :
-            file_location = Path(path_fig) / Path(model) / Path(type_advance) / "Précipitations.png"
-        else :
-            file_location = Path(path_fig) / Path(model) / "Précipitations.png"
-        plt.savefig(file_location)
+        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable)/ Path("Précipitation")
+        fig.savefig(str(file_location))
+        plt.close()
 
     def Afficher () :
         plt.show()
