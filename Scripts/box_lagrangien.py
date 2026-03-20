@@ -194,10 +194,11 @@ class Model_bl():
             self.wat_flo_on_time.append(sum(wat_flo_tot))
             self.list_data.append(list_data_bin)
             grid_t = grid_dt.copy()
-
+        
+        cont_to_mm = np.array(self.wat_flo_on_time)*  (self.vertical_boundaries[1]-self.vertical_boundaries[0])
 
             
-        return self.list_data,self.wat_flo_on_time,self.list_mass 
+        return self.list_data,cont_to_mm,self.list_mass 
 
 
 

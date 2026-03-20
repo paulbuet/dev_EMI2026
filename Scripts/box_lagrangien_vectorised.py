@@ -205,10 +205,11 @@ class Model_bl():
             
         print ("---------------------------------------")
         print(" ")
+        cont_to_mm = np.array(self.wat_flo_on_time)*  (self.vertical_boundaries[1]-self.vertical_boundaries[0])
 
 
             
-        return self.list_data,self.wat_flo_on_time,self.list_mass 
+        return self.list_data,cont_to_mm,self.list_mass 
 
 
 
