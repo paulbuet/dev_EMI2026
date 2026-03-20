@@ -112,6 +112,7 @@ def check_pos(numb):
     except:
         raise argparse.ArgumentTypeError(f"{numb} has to be a number.")
     return numb
+
 def check_CFL(answer):
     """
     function that takes as input the answer for efficiency_test given by the user, checks its compliance, and returns an appropriate response
@@ -120,6 +121,16 @@ def check_CFL(answer):
     """
     if answer not in ['Yes','No']:
         raise argparse.ArgumentTypeError(f"You have to answer if you want to use the CFL condition by Yes or No.")
+    return answer
+
+def check_diag(answer):
+    """
+    function that takes as input the answer for diag given by the user, checks its compliance, and returns an appropriate response
+    nothing if compliant, 
+    error message otherwise
+    """
+    if answer not in ["t_precip_sol", None]:
+        raise argparse.ArgumentTypeError(f"You have to answer the diagnostic you want to use by 't_precip_sol', ... or None if you don't want to use one.")
     return answer
 
 
@@ -151,6 +162,7 @@ parser.add_argument('-f','--efficiency_test', help = "Used as a developpement to
 parser.add_argument('-i','--initial_condition_mode', help = "Pick the type of intialisation you want for the concentration profile (choose between 'simple' and 'gauss')", default="simple", type=check_type_init)
 parser.add_argument('-pp','--path_to_phyex', help = "Enter the absolute or relative path the 'PHYEX' git depository from your working directory", default="..", type=check_path)
 parser.add_argument('-pf','--path_to_fig', help = "Enter the absolute or relative path to the 'fig' directory from your working directory", default="./fig", type=check_path)
+parser.add_argument('-D','--diag', help = "Enter the type of diagnostic you want if needed ('None' if you don't want any)", default=None, type=check_diag)
 
 model = parser.parse_args().model
 model = parser.parse_args().model
@@ -167,9 +179,10 @@ efficiency_test = parser.parse_args().efficiency_test
 type_init = parser.parse_args().initial_condition_mode
 path_phyex = parser.parse_args().path_to_phyex
 path_fig = parser.parse_args().path_to_fig
+diag = parser.parse_args().diag
 
 
 # We print its choices
-print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {mixing_ratio} mixing ratio | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init}")
+print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {mixing_ratio} mixing ratio | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init} | diagnosis : {diag}")
 
-distribution(model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig)
+distribution(model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig, diag)

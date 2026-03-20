@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 
 class distribution:
-    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig):
+    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig, diag):
 
         chemin= os.path.join(f"./fig",f"{model}", f"{type_advance}", f"{deformable}" )
         os.makedirs(chemin, exist_ok=True)
