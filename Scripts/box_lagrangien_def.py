@@ -74,7 +74,10 @@ class model_bl_def:
         print (" ")
         print ("---------------------------------------")
 
-        for t_time in tqdm(range(self.nb_time_step), desc = f"Avancement total Box Lagrangien déformable Step_By_Step : ", position = 0):
+        format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
+        format_affichage_level = "-> {desc} |{bar}| {n_fmt}/{total_fmt} niveaux  | {elapsed}<{remaining} |                                                                                           "
+
+        for t_time in tqdm(range(self.nb_time_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien déformable Step_By_Step : ", position = 0, colour = 'blue'):
             chute_tot_int=0
             
 
@@ -89,7 +92,7 @@ class model_bl_def:
            
             
 
-            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False):
+            for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],bar_format = format_affichage_level,desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False, colour = "green"):
                 
                 
                 conc_profil_int = []

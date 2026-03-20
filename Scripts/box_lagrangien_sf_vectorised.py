@@ -154,7 +154,10 @@ class Model_bl_sf():
         print (" ")
         print ("---------------------------------------")
 
-        for t_time in tqdm(range(self.nb_step), desc = f"Avancement total Box Lagrangien Step_Forward à {self.nb_diam} bins : ", position = 0):
+        format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
+        format_affichage_diam = "-> {desc} |{bar}| {n_fmt}/{total_fmt} bins  | {elapsed}<{remaining} |                                                                                           "
+
+        for t_time in tqdm(range(self.nb_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien Step_Forward à {self.nb_diam} bins : ", position = 0, colour = 'blue'):
             
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : self.grid0["level"]})
 
@@ -163,10 +166,9 @@ class Model_bl_sf():
             wat_flo_tot=[]
 
 
-            for diam in tqdm(range(1,self.nb_diam+1), desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False):  
+            for diam in tqdm(range(1,self.nb_diam+1), bar_format = format_affichage_diam, desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False, colour = "green"):  
 
                 # Sedimentation is processed
-
                 new_grid = self.advect_down(self.grid0,self.speeds[diam-1],(t_time+1) * self.delta_t)
 
                 # we add the sticthes above
