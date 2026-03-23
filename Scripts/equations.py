@@ -229,6 +229,18 @@ class Eq :
             new_val = integrale/(h2-h1)
 
             return new_val
+        
+    def calcul_precip(self,h3, h4, N, dt, lam) :
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #dt : pas de temps
+        f = lambda D,h,sigma,beta,N : N*sigma*D**beta*self.alpha/gamma(self.nu)*lam**(self.alpha*self.nu)*D**(self.alpha*self.nu-1)  * np.exp(-(lam*D)**self.alpha)
+        
+        integrale = -dblquad(f, h3, h4, lambda h : (((np.inf)/(dt*self.c))**(1/self.d)), lambda h : (((h)/(dt*self.c))**(1/self.d)),args=(self.a,self.b,N))[0]
+        #print('val int : ', integrale)
+
+        return integrale
     
 
 class Selection:
