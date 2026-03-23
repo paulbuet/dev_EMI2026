@@ -229,6 +229,44 @@ class Eq :
             new_val = integrale/(h2-h1)
 
             return new_val
+        
+    def calcul_percentil_chute(self, lam, h_tot): #lam : valeur de lambda dans la maille, h_tot : hauteur totale de la colonne d'eau
+
+        D=np.linspace(1e-5, 1, 10000)
+        f=self.Gamma(D, lam)
+        cdf = np.cumsum((f[:-1]+f[1:])/2 * np.diff(D))
+        cdf = np.insert(cdf, 0, 0)
+        cdf/=cdf[-1]
+        q=np.arange(0.02, 1, 0.02)
+        q = np.append(q, 1)
+        D_q = np.interp(q, cdf, D)
+
+        q = np.insert(q, 0, 0)
+        D_q = np.insert(D_q, 0, 0)
+        
+
+        Liste_masse=[]
+        for i in range(len(q)-1):
+            result, error =  integrate.quad(self.Gamma_fois_masse, D_q[i], D_q[i+1], args=lam)
+            fact = - result/(D_q[i]-D_q[i+1])    
+            Liste_masse.append(fact)
+        Liste_masse = np.array(Liste_masse)
+
+        Liste_vitesse=[]
+        for i in range(len(q)-1):
+            result, error = integrate.quad(self.Vitesse, D_q[i], D_q[i+1])
+            fact = - result/(D_q[i]-D_q[i+1])
+            Liste_vitesse.append(fact)
+        Liste_vitesse = np.array(Liste_vitesse)
+
+        Liste_temps_chute = h_tot/Liste_vitesse
+        Liste_temps_chute = Liste_temps_chute[::-1]
+
+        return q, Liste_temps_chute
+
+eq_rain = Eq("r")
+q, Liste_temps_chute = eq_rain.calcul_percentil_chute(2200, 12000)
+print("voici q : ", q, "Voici Liste temps de chute : ", Liste_temps_chute)
     
 
 class Selection:

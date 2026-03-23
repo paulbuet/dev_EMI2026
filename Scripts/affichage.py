@@ -40,11 +40,15 @@ class Affichage :
         plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable):
+    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable, mass_tot_init, Quantiles):
+        
+        quantiles = np.array(Quantiles[0])
+        reference = quantiles * mass_tot_init
+        
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
-
+        
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
@@ -66,6 +70,7 @@ class Affichage :
         ax1.set_ylabel("Précip par pas de temps", fontsize=18)
         ax2 = ax1.twinx()
         ax2.plot(time, Cumul, '--', color="red", label="Cumul")
+        ax2.plot(Quantiles[1], reference, '--', color="green", label="Cumul théoriques")
         ax2.set_ylabel('Cumul', fontsize=18)
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
