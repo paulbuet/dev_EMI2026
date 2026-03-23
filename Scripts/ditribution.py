@@ -149,13 +149,13 @@ class distribution:
                 results = model_config.run()
 
                 concentration_formate = np.array(results[2])
-                Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig, type_advance)
+                Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig, type_advance, deformable)
                 mass_form = np.array(results[1])
-                Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance)
-                Affichage.Affichage_Precipitation(results[0], model, path_fig, type_advance)
+                Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance, deformable)
+                Affichage.Affichage_Precipitation(results[0], model, path_fig, type_advance, deformable)
                 Affichage.Afficher()
 
-                print (f"{model_config.__dict__}")
+                #print (f"{model_config.__dict__}")
                 #print (f"{model_config_bl.__dict__}")
 
                 #plt.plot(model_config.levels, model_config.rho_r_profile)

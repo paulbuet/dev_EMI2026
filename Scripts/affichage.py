@@ -38,7 +38,6 @@ class Affichage :
         plt.colorbar()
         file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable) / Path(typ)
         plt.savefig(str(file_location))
-        plt.close()
 
 
     def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable):
@@ -73,7 +72,6 @@ class Affichage :
         fig.legend(loc=2)
         file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable)/ Path("Précipitation")
         fig.savefig(str(file_location))
-        plt.close()
 
     def Afficher () :
         plt.show()
