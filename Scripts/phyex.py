@@ -172,11 +172,11 @@ class Phyex():
                 else :
                     for i, spec in enumerate(['v','c', 'r', 'i', 's', 'g']):
                         if self.mode_init == "continuous" :
-                            self.condi_init.continuous_bulk_rho_r(PRT[i, :, 0])
+                            self.condi_init.continuous_bulk_rho_r(PRS[i, :, 0])
                             print(PRS[i, :, 0])
                         
                         elif self.mode_init == "continuous_add" :
-                            self.condi_init.continuous_add_bulk_rho_r(PRT[i, :, 0])
+                            self.condi_init.continuous_add_bulk_rho_r(PRS[i, :, 0])
 
             for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
                 cumul[i] += inst[i+1, 0] * self.delta_t * 1000.
