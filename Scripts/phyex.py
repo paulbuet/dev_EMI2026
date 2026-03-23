@@ -35,21 +35,16 @@ class Phyex():
         """
         self.method = method
         self.number_stitches = number_stitches
-        self.length_sim = 200  # length of simulation in seconds
+        self.length_sim = 5000  # length of simulation in seconds
         self.delta_t = delta_t # length of time step in seconds
         self.nb_step = self.length_sim // self.delta_t  # number of time step
         #self.nb_diam = number_bin # number of type of diameter
         self.esp = esp
 
         # Geometry and initial content
-
-        if method == "EULE2" :
-            condi_init = InitialCond(self.number_stitches, esp, "bin", nb_classes=1,mode=type_init)
-            
-        else :
-            condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
-            self.N_profile = np.array(condi_init.data["concentration"])
-            self.rho_r_profile = np.array(condi_init.data["rho_r"])
+        condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
+        self.N_profile = np.array(condi_init.data["concentration"])
+        self.rho_r_profile = np.array(condi_init.data["rho_r"])
 
         self.vertical_boundaries = condi_init.levels_boundaries
         self.levels = condi_init.grid
@@ -85,7 +80,7 @@ class Phyex():
                 self.nml[k] = v
             self.nml.write(namel.name, force=True)
             PYINI_PHYEX('AROME', 33, namel.name, False, 20, 0, 1, self.delta_t, 20.,
-                        'LIMA' if method == 'EULE2' else 'ICE3', 'EDKF', 'TKEL',
+                        self.ccloud, 'EDKF', 'TKEL',
                         LDCHANGEMODEL=True, LDDEFAULTVAL=True, LDREADNAM=True, LDCHECK=True,
                         KPRINT=0, LDINIT=True)
             os.remove('fort.20')
@@ -94,20 +89,14 @@ class Phyex():
         """
         On fait tourner le modèle pour chaque pas de temps.
         """
-
-        # TODO PCT must be filled with N profile
-        # TODO return the values
-        # TODO why there is the same number of values in self.vertical_boundaries and self.levels
-        #      I added one value to boundaries
-
         NIJT = 1
         NKT = len(self.levels)
         PRHODREF = numpy.ones((NKT, NIJT))
         P = numpy.ones((NKT, NIJT)) * 101315.
         Theta = numpy.ones((NKT, NIJT)) * 300.
         T = numpy.ones((NKT, NIJT)) * 300.
-        dzz = numpy.array(list(self.vertical_boundaries[1:] -
-                               self.vertical_boundaries[:-1]) + [10.]).reshape((NKT, 1))
+        boundaries = numpy.array([0] + list(self.vertical_boundaries))
+        dzz = (boundaries[1:] - boundaries[:-1]).reshape((NKT, 1))
         PLVFACT = PLSFACT = numpy.ones((NKT, NIJT))
         rhodj = dzz * PRHODREF
         PTHS = Theta / self.delta_t
@@ -116,14 +105,12 @@ class Phyex():
         PCT = numpy.ndarray((KRR, NKT, NIJT))
         for k in range(KRR):
             PRT[k] = self.rho_r_profile.reshape((NKT, 1))
-            N_profile = numpy.array(self.N_profile).reshape(NKT,1)
-            #print (numpy.shape(numpy.array(self.concentration_profile).reshape(NKT,1)))
-            PCT[k] = N_profile   ### Should be the N profile
+            PCT[k] = self.N_profile.reshape(NKT, 1)
         PRS = PRT / self.delta_t
         PCS = PCT / self.delta_t
         PQCT = PQRT = PQIT = PQST = PQGT = numpy.zeros((NKT, NIJT))
         PQCS = PQRS = PQIS = PQSS = PQGS = PEFIELDW = numpy.zeros((NKT, NIJT))
-        PCONC3D = numpy.zeros((NKT, NIJT))
+        PCONC3D = numpy.ones((NKT, NIJT)) * 3.E8
 
         rho_r_profile = []
         ct_profile = []
@@ -134,6 +121,12 @@ class Phyex():
         format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
         format_affichage_diam = "-> {desc} |{bar}| {n_fmt}/{total_fmt} bins  | {elapsed}<{remaining} |                                                                                           "
 
+        cumul = [0. for spec in ['c', 'r', 'i', 's', 'g']]
+
+        #print(f'content before (max r is {self.rho_r_profile.max()})')
+        #for i, spec in enumerate(['v', 'c', 'r', 'i', 's', 'g']):
+        #    print(spec, (PRT[i]*dzz*PRHODREF).sum())
+        #print()
         for _ in tqdm(range(self.nb_step), bar_format = format_affichage_time, desc = f"Avancement total {self.ccloud} ", position = 0, colour = 'blue'):
             inst = numpy.zeros((KRR, NIJT))
             if self.ccloud == 'LIMA':
@@ -148,13 +141,7 @@ class Phyex():
                                                   PRHODREF, 0., P, T, numpy.zeros((NKT, NIJT)),
                                                   numpy.zeros((NKT, NIJT)), PRS[i + 1], PCS[i+ 1],
                                                   missingOUT=['PQS'])
-                    # print('after sedim lima')
                     (_, _, _, PRS[i + 1], PCS[i + 1], inst[i + 1], _) = result
-                    PCT[i + 1] = PCS[i + 1] * self.delta_t
-                    PRT[i + 1] = PRS[i + 1] * self.delta_t
-                    if self.esp == spec :
-                        rho_r_profile.append(PRT[i+1, :, 0])
-                        ct_profile.append(PCT[i+1, :,0])
             else:
                 result = PYICE4_SEDIMENTATION(NIJT, NKT, 1, 0, False, False, self.delta_t, KRR,
                                               dzz, 0., PLVFACT, PLSFACT,
@@ -165,22 +152,19 @@ class Phyex():
                                               PEFIELDW, 0, PSEA=numpy.zeros((NIJT,)),
                                               PTOWN=numpy.zeros((NIJT,)),
                                               missingOUT=['PFPR', 'PINPRH'])
-                # print('after sedim ice4')
                 (PTHS, PRS, inst[1], inst[2], inst[3],
                  inst[4], _, _, _, _, _) = result
-                PRT = PRS * self.delta_t
-                for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
-                    if self.esp == spec:
-                        PCT[i + 1] = PRT[i+1] # r profile at the end of the timestep
-                        rho_r_profile.append(PRT[i+1, :, 0])
-                        ct_profile.append(PCT[i+1, :, 0])
-
-        #print (f"{i} : PCT {PCT[0]} ")
-        #print(len(PRT[0]))
-        #print(PRT[0][0])
-        #print(PRT[0][0][0])
-        #print(f"inst{inst}")
-        #print(self.nb_step)
+            PCT = PCS * self.delta_t
+            PRT = PRS * self.delta_t
+            for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
+                cumul[i] += inst[i+1, 0] * self.delta_t * 1000.
+                if self.esp == spec:
+                    rho_r_profile.append(PRT[i+1, :, 0].copy())
+                    ct_profile.append(PCT[i+1, :, 0].copy())
+                    self.wat_flo_on_time.append(inst[i+1, 0] * self.delta_t * 1000.)  # m/s -> kg/m2
+        #print('Content after (in atmosphere, at surface, total):')
+        #for i, spec in enumerate(['v', 'c', 'r', 'i', 's', 'g']):
+        #    print(spec, (PRT[i]*dzz*PRHODREF).sum(), cumul[i-1] if i !=0 else 0, (PRT[i]*dzz*PRHODREF).sum() + (cumul[i-1] if i !=0 else 0))
 
         self.rho_r_profile = rho_r_profile
         self.ct_profile = ct_profile
