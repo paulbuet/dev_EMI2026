@@ -198,11 +198,10 @@ class InitialCond :
             
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
-            if mode == "simple" :
+            if mode in ["simple","ajout_continu"] :
                 relative_profile = [ 0 for i in range(nb_levels)]
                 relative_profile[-1] = 1
                 #relative_profile[-2] = 1/2
-
 
             if mode == "gauss" :
                 relative_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
@@ -216,8 +215,17 @@ class InitialCond :
             bulk_profile = np.array(N_profile)   # computinng of the n bin profiles
             data_vars1 = {"concentration" : ("level", bulk_profile), "rho_r": ("level",self.rho_r_profile)}
 
+            if mode == "ajout_continu" :
+                self.source_N = bulk_profile[-1]
+                self.source_rho_r = self.rho_r_profile[-1]
+
 
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
+    
+    def ajout_continu_bulk (Data) : 
+        Data["concentration"][-1] = self.source_N
+        Data["rho_r"][-1] = self.source_rho_r
+
         
 
 
