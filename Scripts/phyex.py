@@ -42,12 +42,13 @@ class Phyex():
         self.esp = esp
 
         # Geometry and initial content
-        condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
-        self.N_profile = np.array(condi_init.data["concentration"])
-        self.rho_r_profile = np.array(condi_init.data["rho_r"])
+        self.condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
+        self.mode_init = type_init
+        self.N_profile = np.array(self.condi_init.data["concentration"])
+        self.rho_r_profile = np.array(self.condi_init.data["rho_r"])
 
-        self.vertical_boundaries = condi_init.levels_boundaries
-        self.levels = condi_init.grid
+        self.vertical_boundaries = self.condi_init.levels_boundaries
+        self.levels = self.condi_init.grid
 
         # Initialisation of variables
         self.water_on_floor = 0.  # Mass of water wich has touched the ground
@@ -156,6 +157,27 @@ class Phyex():
                  inst[4], _, _, _, _, _) = result
             PCT = PCS * self.delta_t
             PRT = PRS * self.delta_t
+
+            if self.mode_init in ["continuous", "continuous_add"] :
+                
+                if self.ccloud == 'LIMA' :
+                    for i, spec in enumerate(['v','c', 'r', 'i', 's', 'g']):
+                        if self.mode_init == "continuous" :
+                            self.condi_init.continuous_bulk_rho_r(PRS[i, :, 0])
+                            self.condi_init.continuous_bulk_N(PCS[i, :, 0])
+                        
+                        elif self.mode_init == "continuous_add" :
+                            self.condi_init.continuous_add_bulk_rho_r(PRS[i, :, 0])
+                            self.condi_init.continuous_add_bulk_N(PCS[i, :, 0])
+                else :
+                    for i, spec in enumerate(['v','c', 'r', 'i', 's', 'g']):
+                        if self.mode_init == "continuous" :
+                            self.condi_init.continuous_bulk_rho_r(PRT[i, :, 0])
+                            print(PRS[i, :, 0])
+                        
+                        elif self.mode_init == "continuous_add" :
+                            self.condi_init.continuous_add_bulk_rho_r(PRT[i, :, 0])
+
             for i, spec in enumerate(['c', 'r', 'i', 's', 'g']):
                 cumul[i] += inst[i+1, 0] * self.delta_t * 1000.
                 if self.esp == spec:
@@ -164,7 +186,7 @@ class Phyex():
                     self.wat_flo_on_time.append(inst[i+1, 0] * self.delta_t * 1000.)  # m/s -> kg/m2
         #print('Content after (in atmosphere, at surface, total):')
         #for i, spec in enumerate(['v', 'c', 'r', 'i', 's', 'g']):
-        #    print(spec, (PRT[i]*dzz*PRHODREF).sum(), cumul[i-1] if i !=0 else 0, (PRT[i]*dzz*PRHODREF).sum() + (cumul[i-1] if i !=0 else 0))
+        #    print(spec, (PRT[i]*dzz*PRHODREF).sum(), cumul[i-1] if i !=0 else 0, (PRT[i]*dzz*PRHODREF).sum() + (cumul[i-1] if i !=0 else 0)    
 
         self.rho_r_profile = rho_r_profile
         self.ct_profile = ct_profile

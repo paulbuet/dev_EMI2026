@@ -142,7 +142,6 @@ class model_bl_def_sf:
             rho_r_profil = rho_r_profil_dt
             concentration_profil = concentration_profil_dt
 
-
         return Liste_concentration, chute_tot, Liste_rho_r
 
         

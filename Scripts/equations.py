@@ -290,13 +290,13 @@ class Selection:
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
-    def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
+    def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, rho_r, lam):
         Result=[]
         Intervalle=(Dmax-Dmin)/nb_classes
         for i in range(nb_classes):
             Di=(1+2*i)*Intervalle/2 + Dmin
             
             P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
-            rho_r_i=N*P_i
+            rho_r_i=rho_r*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
