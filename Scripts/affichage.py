@@ -27,7 +27,7 @@ class Affichage :
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        plt.figure(figsize=(Temps_simu, nb_boites))
+        plt.figure() # (figsize=(Temps_simu, nb_boites))
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         norm = Normalize(vmin=0,vmax = max(Concentration[0]))

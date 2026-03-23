@@ -147,12 +147,12 @@ class distribution:
                 #model_config_bl = Model_bl_sf(number_stitches,number_bin,time_step,speed_max,esp,CFL,type_init)
 
                 results = model_config.run()
-                b = time.time()
-                concentration_formate = np.array(results[1])
-                Affichage.Affichage_Concentration(concentration_formate, "Concentration", chemin, b-a)
+
                 concentration_formate = np.array(results[2])
-                Affichage.Affichage_Concentration(concentration_formate, "Masse", chemin, b-a)
-                #Affichage.Affichage_Precipitation(results[0], model, path_fig)
+                Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig, type_advance)
+                mass_form = np.array(results[1])
+                Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance)
+                Affichage.Affichage_Precipitation(results[0], model, path_fig, type_advance)
                 Affichage.Afficher()
 
                 print (f"{model_config.__dict__}")
