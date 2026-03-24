@@ -137,15 +137,17 @@ class distribution:
                     else:
                         a = time.time()
                         model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init)
-
+                        print("coucou c'est moi et je suis bien positionné !")
                         results = model_config.run()
-                        Quantiles=Eq(esp).calcul_percentil_chute(model_config.lam_init, h_tot)
+                        lam=model_config.lam_init[-1]
+
+                        Quantiles=Eq(esp).calcul_percentil_chute(lam, h_tot)
                         concentration_formate = np.array(results[0])
                         b = time.time()
                         mass_form = np.array(results[2])
                         Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
                         Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, model_config.mass_tot_init, Quantiles)
+                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, model_config.mass_tot_init, Quantiles, model_config.duree_sim)
                         Affichage.Afficher()
             elif model in ('EULE', 'EULE2', 'STAT'):
                 a = time.time()

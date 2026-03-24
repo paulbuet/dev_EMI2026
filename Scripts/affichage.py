@@ -40,37 +40,48 @@ class Affichage :
         plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable, mass_tot_init, Quantiles):
-        
+    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable, mass_tot_init, Quantiles, duree_sim):
+        print("ça c'est masse tot init : ", mass_tot_init)
         quantiles = np.array(Quantiles[0])
+        time3 = np.array(Quantiles[1])
+        print("time3 : ", time3)
+        time3 = np.insert(time3, 0, 0)
+        print("time3 : ", time3)
         reference = quantiles * mass_tot_init
+        print("ref : ", reference)
         
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
-        
         for i in range(len(Precip)):
             liste[i]=1
             Cumul.append(np.dot(Precip, liste))
+        time=np.linspace(1, len(Precip), len(Precip))
+        time=time*duree_sim/(len(Cumul)-1)
+        time2 = time -(time[1]-time[0])/2
         fig, ax1 = plt.subplots()
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.yaxis.set_major_locator(MultipleLocator(1))
         ax.set_xlim(left=0)
-        x_max = len(Precip)-1
+        x_max = time3[-1]+1
         ticks = np.linspace(0, x_max, 11)
         ax.set_xticks(ticks)
         ax.set_xticklabels([f"{t:.2f}" for t in ticks])
         ax.yaxis.set_major_locator(MaxNLocator(10))
 
-        time=np.linspace(1, len(Precip), len(Precip))
-        time2 = time -(time[1]-time[0])/2
+
+
+        print(time, time2, time3)
+
+        print(len(time), len(Cumul), len(time2), len(Precip), len(time3), len(reference))
+
         ax1.bar(time2, Precip, color="blue", label="Précip par pas de temps")
         ax1.set_xlabel("temps", fontsize=18)
         ax1.set_ylabel("Précip par pas de temps", fontsize=18)
         ax2 = ax1.twinx()
         ax2.plot(time, Cumul, '--', color="red", label="Cumul")
-        ax2.plot(Quantiles[1], reference, '--', color="green", label="Cumul théoriques")
+        ax2.plot(time3, reference, '--', color="green", label="Cumul théoriques")
         ax2.set_ylabel('Cumul', fontsize=18)
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')

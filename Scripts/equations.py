@@ -243,9 +243,12 @@ class Eq :
         return integrale
       
     def calcul_percentil_chute(self, lam, h_tot): #lam : valeur de lambda dans la maille, h_tot : hauteur totale de la colonne d'eau
+        
+        
+
 
         D=np.linspace(1e-5, 1, 10000)
-        f=self.Gamma(D, lam)
+        f=self.Gamma_fois_masse(D, lam)
         cdf = np.cumsum((f[:-1]+f[1:])/2 * np.diff(D))
         cdf = np.insert(cdf, 0, 0)
         cdf/=cdf[-1]
@@ -256,13 +259,14 @@ class Eq :
         q = np.insert(q, 0, 0)
         D_q = np.insert(D_q, 0, 0)
         
-
+        print("ça c'est q : ", q, " et ça c'est D_q : ", D_q)
         Liste_masse=[]
         for i in range(len(q)-1):
             result, error =  integrate.quad(self.Gamma_fois_masse, D_q[i], D_q[i+1], args=lam)
             fact = - result/(D_q[i]-D_q[i+1])    
             Liste_masse.append(fact)
         Liste_masse = np.array(Liste_masse)
+        print("ça c'est la somme de ma liste de masse : ",np.sum(Liste_masse))
 
         Liste_vitesse=[]
         for i in range(len(q)-1):
@@ -275,6 +279,72 @@ class Eq :
         Liste_temps_chute = Liste_temps_chute[::-1]
 
         return q, Liste_temps_chute
+    
+
+def sedimentation_times(self, N, lam, h_tot):
+    p_values = np.linspace(0.02, 0.98, 49)
+    D_min=1e-6
+    D_max=5e-3
+    """
+    Calcule le temps théorique pour lequel une fraction p de la masse
+    a sédimenté.
+
+    Paramètres
+    ----------
+    p_values : array-like
+        Fractions de masse (ex: np.linspace(0.02, 0.98, 49))
+    N : float
+        Concentration initiale
+    lam : float
+        Paramètre lambda de la loi gamma
+    alpha, nu : float
+        Paramètres de la loi gamma
+    a, b : float
+        Loi de masse : m(D) = a D^b
+    c, d : float
+        Loi de vitesse : v(D) = c D^d
+    H : float
+        Hauteur de la colonne
+    D_min, D_max : float
+        Bornes d'intégration
+
+    Retour
+    ------
+    t_values : array
+        Temps associés à chaque p
+    D_values : array
+        Diamètres seuils associés
+    """
+
+    # --- Loi gamma généralisée ---
+    
+    # --- Densité de masse ---
+    def mass_density(D):
+        return N * self.Gamma(D, lam) * self.a * D**self.b
+
+    # --- Masse totale ---
+    M_tot, _ = quad(mass_density, D_min, D_max)
+
+    t_values = []
+    D_values = []
+
+    for p in p_values:
+
+        # Fonction à annuler : masse au-dessus de Dx - p*Mtot
+        def func(Dx):
+            integral, _ = quad(mass_density, Dx, D_max)
+            return integral - p * M_tot
+
+        # Résolution de Dx
+        Dx = brentq(func, D_min, D_max)
+        D_values.append(Dx)
+
+        # Vitesse et temps
+        v = c * Dx**d
+        t = H / v
+        t_values.append(t)
+
+    return np.array(t_values), np.array(D_values)
 
 eq_rain = Eq("r")
 q, Liste_temps_chute = eq_rain.calcul_percentil_chute(2200, 12000)
