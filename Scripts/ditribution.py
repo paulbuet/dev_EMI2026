@@ -32,7 +32,7 @@ class distribution:
         
         path_to_phyex = Path(path_phyex) / "PHYEX"
         sys.path.append(str(path_to_phyex))
-        from phyex import Eule, Eule2, Stat
+        #from phyex import Eule, Eule2, Stat
 
         if efficiency_test == "Yes" : 
             
