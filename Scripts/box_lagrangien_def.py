@@ -144,13 +144,7 @@ class model_bl_def:
             rho_r_profil = rho_r_profil_dt
             concentration_profil = concentration_profil_dt
 
-            if self.mode_init == "continuous" :
-                self.condi_config.continuous_bulk_N(concentration_profil)
-                self.condi_config.continuous_bulk_rho_r(rho_r_profil)
-
-            if self.mode_init == "continuous_add" :
-                self.condi_config.continuous_add_bulk_N(concentration_profil)
-                self.condi_config.continuous_add_bulk_rho_r(rho_r_profil)
+            self.condi_config.continuous_source(list_N=concentration_profil,list_rho_r=rho_r_profil,M=2)
 
 
         return Liste_concentration, chute_tot, Liste_rho_r
