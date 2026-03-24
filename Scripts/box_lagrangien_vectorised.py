@@ -69,7 +69,7 @@ class Model_bl():
         self.vertical_boundaries = condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
-        print(self.size_diam)
+
 
         # On calcule les épaisseurs des mailles
         h_interfaces = np.concatenate(([0],self.vertical_boundaries))
@@ -110,7 +110,7 @@ class Model_bl():
         Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
         """
 
-        shift = -V * dt   # On calcule le futur mouvement verticale
+        shift = -min(V,self.speed_max) * dt   # On calcule le futur mouvement verticale
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
