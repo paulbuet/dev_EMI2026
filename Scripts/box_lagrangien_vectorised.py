@@ -68,7 +68,15 @@ class Model_bl():
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.diameters)
+        self.size_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
+        print(self.size_diam)
+
+        # On calcule les épaisseurs des mailles
+        h_interfaces = np.concatenate(([0],self.vertical_boundaries))
+        self.h_interfaces = h_interfaces
+
+        self.epaiss_maille = np.array([h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(self.number_stitches)])
+        
 
        
         # Initialisation of variables
@@ -95,7 +103,7 @@ class Model_bl():
         
 
    def mass(self,grid,var, diam):
-       return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
+       return sum(grid[var].values*self.epaiss_maille)*Eq(self.esp).Masse((self.size_diam[diam-1]+self.size_diam[diam])/2)
 
    def advect_down(self,ds, V, dt):
         """
@@ -179,6 +187,7 @@ class Model_bl():
                 new_grid = self.add_stitche(new_grid, diam)
 
                 # We put the stagerd grid on the good grid
+
                 grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
 
                 
@@ -199,7 +208,8 @@ class Model_bl():
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
+                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),list_data_bin[-1])})
+                grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),list_mass_bin[-1])})
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
@@ -208,7 +218,7 @@ class Model_bl():
             
         print ("---------------------------------------")
         print(" ")
-        cont_to_mm = np.array(self.wat_flo_on_time)*  (self.vertical_boundaries[1]-self.vertical_boundaries[0])
+        cont_to_mm = np.array(self.wat_flo_on_time)
 
 
             

@@ -292,23 +292,27 @@ class Selection:
         return Dmin, Dmax
     
     def Classe_D_N(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma, Dmin+list_interv[i]*Intervalle,  Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
     def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+list_interv[i]*Intervalle, Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
             rho_r_i=N*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
