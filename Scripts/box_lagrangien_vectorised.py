@@ -202,8 +202,6 @@ class Model_bl():
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
 
                 self.condi_init.continuous_source (list_N=grid_dt[f"concentration_bin_{diam}"], nb_diam = diam)
-                
-            print(grid_dt[f"concentration_bin_{1}"])
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
