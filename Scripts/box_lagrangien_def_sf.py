@@ -32,9 +32,9 @@ class model_bl_def_sf:
 
         # On s'occupe du temps
 
-        duree_sim = 2000
+        self.duree_sim = 35000
 
-        self.nb_time_step = duree_sim // time_step
+        self.nb_time_step = self.duree_sim // time_step
 
         self.time_step = time_step
 
