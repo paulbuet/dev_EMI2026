@@ -13,6 +13,7 @@
 from math import *
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
@@ -20,9 +21,9 @@ from matplotlib.colors import Normalize, LogNorm
 
 
 
-class Affichage :
+class Figure :
 
-    def Affichage_Concentration(Concentration, typ, model, path_fig, type_advance,deformable): #type="concentration" ou "masse"
+    def concentration_content(Concentration, typ, chemin): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -36,11 +37,11 @@ class Affichage :
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable) / Path(typ)
+        file_location = chemin / Path (typ)
         plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable):
+    def precipitation(Precip, chemin):
         Precip=np.array(Precip)
         liste=np.zeros(len(Precip))
         Cumul=[]
@@ -70,8 +71,31 @@ class Affichage :
         plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
         plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
         fig.legend(loc=2)
-        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable)/ Path("Précipitation")
+        file_location = chemin / Path("Précipitation")
         fig.savefig(str(file_location))
 
-    def Afficher () :
+    
+class Affichage :
+
+    def __init__(self,model,path_fig,type_advance,deformability):
+
+        if deformability == "Yes" :
+            deformable = "Boîte déformable"
+        else :
+            deformable = "Boîte fixe"
+
+        if model in ["EULE", "EULE2", "STAT"]:
+            self.chemin = os.path.join(Path(path_fig) / Path(model))
+            os.makedirs(self.chemin, exist_ok=True)
+        else :
+            self.chemin = os.path.join(Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable))
+            os.makedirs(self.chemin, exist_ok=True)
+        
+    
+    def afficher (self,Concentration,Contenu,Precip) :
+        
+        Figure.concentration_content(Concentration,"Concentration", self.chemin)
+        Figure.concentration_content(Contenu, "Contenu", self.chemin)
+        Figure.precipitation(Precip, self.chemin)
+
         plt.show()
