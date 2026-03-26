@@ -34,10 +34,10 @@ class model_bl_def:
 
         # On s'occupe du temps
 
-        duree_sim = 2000
+        self.duree_sim = 2000
 
 
-        self.nb_time_step = duree_sim // time_step
+        self.nb_time_step = self.duree_sim // time_step
 
         self.time_step = time_step
 
@@ -86,6 +86,9 @@ class model_bl_def:
             # On calcule lambda
 
             Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
+            if t_time == 0:
+                self.lam_init = Lambda[-1]
+                self.conc_tot_init = concentration_profil[-1]
 
             # On itère sur les mailles 
             for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],bar_format = format_affichage_level,desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False, colour = "green"):

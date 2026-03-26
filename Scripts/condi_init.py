@@ -123,7 +123,7 @@ class InitialCond :
             # plt.show()
 
 
-            self.r_profile = np.array(relative_profile)*r
+            self.r_profile = np.array(relative_profile)*float(r)
 
             self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
 
@@ -204,7 +204,7 @@ class InitialCond :
             if mode == "gauss" :
                 relative_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,np.array(relative_profile)*r)
+            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,np.array(relative_profile)*float(r))
 
             eq=Eq(esp)
 

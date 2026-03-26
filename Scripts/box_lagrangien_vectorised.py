@@ -26,11 +26,11 @@ class Model_bl():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 2000  # length of simulation in seconds
+        self.duree_sim = 2000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
-        self.nb_step = self.length_sim // self.delta_t  # number of time step
+        self.nb_step = self.duree_sim // self.delta_t  # number of time step
 
         self.nb_diam = number_bin # number of type of diameter
         self.esp = esp
@@ -100,7 +100,11 @@ class Model_bl():
         # speed is calculated
 
         self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
-        
+        print(self.list_data)
+        self.lam_init = Eq(esp).Liste_Lanbda(sum(self.list_mass[0]),sum(self.list_data[0]))[-1]
+        print("lambdaz:", self.lam_init)
+        self.conc_tot_init = sum(self.list_data[0])[-1]
+        print("concen:", self.conc_tot_init)
 
    def mass(self,grid,var, diam):
        return sum(grid[var].values*self.epaiss_maille)*Eq(self.esp).Masse((self.size_diam[diam-1]+self.size_diam[diam])/2)
