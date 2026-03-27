@@ -1,0 +1,18 @@
+nombre de mailles: nb_mailles
+nombre de bins: nb_bins
+rapport de mélange: rapp_mel
+durée du pas de temps: delta_t
+vitesse maximale: vit_max
+espèce: esp
+respect ou non de la condition CFL: CFL
+type d'initialisation (simple ou gaussien): type_init
+durée de la simulation: duree_sim
+nombre de pas de temps: nb_step
+hauteurs des interfaces: hauteur_interf 
+taille des diamètres: taille_diam
+eau tombée au sol par pas de temps: eau_au_sol
+épaisseur de chaque mailles: epaiss_maille
+hauteur de la colonne: h_max
+concentration par bin sur la colonne par pas de temps: liste_conc_bin
+contenu par bin sur la colonne par pas de temps: liste_cont_bin
+vitesse des bin (en m/s): vit_bin
