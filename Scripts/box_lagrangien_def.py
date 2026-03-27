@@ -21,15 +21,17 @@ class model_bl_def:
     def __init__(self,nb_stitches,time_step,esp,r,mode):
         
         # On configure le modèle avec les données d'entrée
-        condi_config = IC(nb_stitches, esp, "Bulk", mode = mode, r = r)
+        self.condi_config = IC(nb_stitches, esp, "Bulk", mode = mode, r = r)
+        self.mode_init = mode
         self.Eq_config = Eq(esp)
 
-        # On récupère les concentrations et le profil de rho_r
-        self.grid_0 = condi_config.data
+        # On récupère les concentrations et le profil de rho_r et de rho
+        self.grid_0 = self.condi_config.data
+        rho = self.condi_config.rho
 
         # On récupère les valeurs de hauteurs des interfaces et on ajoute le sol
 
-        h_interfaces = np.concatenate(([0],condi_config.levels_boundaries))
+        h_interfaces = np.concatenate(([0],self.condi_config.levels_boundaries))
         self.h_interfaces = h_interfaces
 
         # On s'occupe du temps
@@ -144,6 +146,8 @@ class model_bl_def:
 
             rho_r_profil = rho_r_profil_dt
             concentration_profil = concentration_profil_dt
+
+            self.condi_config.continuous_source(list_N=concentration_profil,list_rho_r=rho_r_profil,M=2)
 
 
         return Liste_concentration, chute_tot, Liste_rho_r

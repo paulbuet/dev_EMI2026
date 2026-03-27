@@ -13,6 +13,7 @@
 from math import *
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
@@ -20,17 +21,12 @@ from matplotlib.colors import Normalize, LogNorm
 
 
 
-class Affichage :
+class Figure :
 
-    def Affichage_Concentration(Concentration, typ, param_en_plus): 
-        
-        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
-        
-        Temps_simu=len(Concentration)
-        nb_boites=len(Concentration[0])
+    def sedimentation_time(Concentration, typ, chemin, params): #type="concentration" ou "masse"
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        plt.figure() # (figsize=(Temps_simu, nb_boites))
+        plt.figure()
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         norm = Normalize(vmin=0,vmax = max(Concentration[0]))
@@ -39,22 +35,12 @@ class Affichage :
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'):
-            file_location = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
-        else :
-            if param_en_plus[3] == "No" :
-                file_location = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
-            else :
-                file_location = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
-
+        file_location = chemin / Path (typ)
         plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable, Quantiles, duree_sim):
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from matplotlib.ticker import MultipleLocator, MaxNLocator
-        from pathlib import Path
+    def precipitation(Precip, chemin, params, Quantiles):
+
 
         # --- Données ---
         Precip = np.array(Precip, dtype=float)
@@ -71,7 +57,7 @@ class Affichage :
 
         # --- Temps ---
         n = len(Precip)
-        time = np.linspace(0, duree_sim, n)
+        time = np.linspace(0, params[-2], n) #params -2 c'est durée simulation
         dt = time[1] - time[0]
         time2 = time - dt / 2 # pour centrer les barres
 
@@ -111,10 +97,32 @@ class Affichage :
         plt.title("Évolution des précipitations et cumul", fontsize=16)
 
         # --- Sauvegarde ---
-        file_location = Path(path_fig) / model / type_advance / deformable / "Precipitation"
-        file_location.mkdir(parents=True, exist_ok=True)
+        file_location = chemin / Path("Précipitation")
+        fig.savefig(str(file_location))
 
-        fig.savefig(file_location / "precipitation.png", dpi=300, bbox_inches='tight')
+    
+class Affichage :
 
-    def Afficher () :
+    def __init__(self,param_en_plus):
+
+        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
+
+
+        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'):
+            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+        else :
+            if param_en_plus[3] == "No" :
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+            else :
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+        
+        os.makedirs(self.chemin, exist_ok=True)
+        self.params=param_en_plus
+    
+    def afficher (self,Concentration,Contenu,Precip, Quantiles) :
+        
+        Figure.sedimentation_time(Concentration,"Concentration", self.chemin, self.params)
+        Figure.sedimentation_time(Contenu, "Contenu", self.params, self.chemin)
+        Figure.precipitation(Precip, self.chemin, self.chemin, Quantiles)
+
         plt.show()

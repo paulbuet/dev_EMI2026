@@ -92,6 +92,8 @@ class InitialCond :
         eq=Eq(esp)
         form = Formatage(esp)
         selec = Selection(esp)
+        self.types = types
+        self.mode_init = mode
 
 
 
@@ -110,7 +112,7 @@ class InitialCond :
             
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
-            if mode == "simple" :
+            if mode in ["simple","continuous", "continuous_add"] :
                 relative_profile = [0 for i in range (nb_levels)]
                 relative_profile [-1] = 1
             if mode == "gauss" :
@@ -176,6 +178,9 @@ class InitialCond :
             #   plt.plot(x,y)
             # plt.show()
 
+            self.sources_bins_rho_r = [bins_rho_r_profiles[ind_bin][-1] for ind_bin in range(nb_classes)]
+            self.sources_bins_N = [bins_concentrations_profiles[ind_bin][-1] for ind_bin in range(nb_classes)]
+
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
 
             # print (self.data["rho_r_bin_1"])
@@ -196,7 +201,7 @@ class InitialCond :
             
             self.grid = [(boundaries[i]+boundaries[i+1])/2 for i in range(len(boundaries)-1)]
 
-            if mode in ["simple","ajout_continu"] :
+            if mode in ["simple","continuous", "continuous_add"] :
                 relative_profile = [ 0 for i in range(nb_levels)]
                 relative_profile[-1] = 1
                 #relative_profile[-2] = 1/2
@@ -213,19 +218,36 @@ class InitialCond :
             bulk_profile = np.array(N_profile)   # computinng of the n bin profiles
             data_vars1 = {"concentration" : ("level", bulk_profile), "rho_r": ("level",self.rho_r_profile)}
 
-            if mode == "ajout_continu" :
+            if mode in ["continuous", "continuous_add"] :
                 self.source_N = bulk_profile[-1]
                 self.source_rho_r = self.rho_r_profile[-1]
 
-
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
     
-    def ajout_continu_bulk (Data) : 
-        Data["concentration"][-1] = self.source_N
-        Data["rho_r"][-1] = self.source_rho_r
+    def continuous_source (self, list_N = [], list_rho_r = [], M = 1, nb_diam = None) :
+                
+        if self.types == "bin" :
 
-        
+            if self.mode_init == "continuous" :
+                list_N[-1] = self.sources_bins_N[nb_diam-1]
 
+            elif self.mode_init == "continuous_add" :
+                list_N[-1]+= self.sources_bins_N[nb_diam-1]
+
+        else :
+            if self.mode_init == "continuous" :
+                if M == 1 :
+                    list_rho_r[-1] = self.source_rho_r
+                elif M == 2 :
+                    list_rho_r[-1] = self.source_rho_r
+                    list_N[-1] = self.source_N
+            
+            elif self.mode_init == "continuous_add" :
+                if M == 1 :
+                    list_rho_r[-1]+= self.source_rho_r
+                elif M == 2 :
+                    list_rho_r[-1]+= self.source_rho_r
+                    list_N[-1]+= self.source_N
 
 ### Tests and verifications ###
 

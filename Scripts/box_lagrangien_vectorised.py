@@ -62,11 +62,11 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r=r)
+        self.condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r=r)
    
-        self.grid0 = condi_init.data
+        self.grid0 = self.condi_init.data
 
-        self.vertical_boundaries = condi_init.levels_boundaries
+        self.vertical_boundaries = self.condi_init.levels_boundaries
 
         self.size_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
 
@@ -214,6 +214,8 @@ class Model_bl():
                 
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),list_data_bin[-1])})
                 grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),list_mass_bin[-1])})
+
+                self.condi_init.continuous_source (list_N=grid_dt[f"concentration_bin_{diam}"], nb_diam = diam)
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))

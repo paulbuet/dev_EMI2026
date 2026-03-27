@@ -62,13 +62,13 @@ class Model_bl():
         
         """
    
-        condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r= mixing_ratio)
+        self.condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r= mixing_ratio)
    
-        self.grid0 = condi_init.data
+        self.grid0 = self.condi_init.data
 
-        self.vertical_boundaries = condi_init.levels_boundaries
+        self.vertical_boundaries = self.condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.diameters)
+        self.size_diam = np.array(self.condi_init.diameters)
 
         # Initialisation of variables
 
@@ -196,6 +196,8 @@ class Model_bl():
                 wat_flo_tot.append(self.water_on_floor)
                 
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
+                
+                self.condi_init.continuous_source (grid_dt[f"concentration_bin_{diam}"])
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
