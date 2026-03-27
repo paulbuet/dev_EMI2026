@@ -8,10 +8,7 @@ from box_lagrangien_def_sf import model_bl_def_sf
 from affichage import Affichage
 from equations import Eq
 
-
-"""
 from phyex import Eule, Eule2, Stat
-"""
 
 import numpy as np
 import time
