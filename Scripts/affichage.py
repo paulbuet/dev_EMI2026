@@ -52,6 +52,7 @@ class Figure :
         plt.colorbar()
         file_location = chemin / Path (typ)
         plt.savefig(str(file_location))
+        plt.close()
 
 
     def precipitation(Precip, chemin, params, Quantiles):
@@ -136,6 +137,7 @@ class Figure :
         # --- Sauvegarde ---
         file_location = chemin / Path("Précipitation")
         fig.savefig(str(file_location))
+        plt.close()
 
     
 class Affichage :

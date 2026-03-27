@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 
 
 class distribution:
-    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, efficiency_test, type_init, path_phyex, path_fig, diag):
+    def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, type_init, path_phyex, path_fig, diag):
         h_tot=12000
-        
+        duree_sim = 2000
         path_to_phyex = Path(path_phyex) / "PHYEX"
         sys.path.append(str(path_to_phyex))
         #from phyex import Eule, Eule2, Stat
@@ -37,7 +37,7 @@ class distribution:
 
                     a = time.time()
 
-                    model_config = Model_bl(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
+                    model_config = Model_bl(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init,duree_sim)
                     results = model_config.run()
 
                     b = time.time()
@@ -46,7 +46,7 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     concentration_formate = np.array(results[0]).sum(axis=1)
@@ -61,7 +61,7 @@ class distribution:
 
                     a = time.time()
 
-                    model_config = model_bl_def(number_stitches,time_step,esp,mixing_ratio,type_init)
+                    model_config = model_bl_def(number_stitches,time_step,esp,mixing_ratio,type_init,duree_sim)
                     results = model_config.run()
 
                     b = time.time()
@@ -70,12 +70,13 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus = param_en_plus + (model_config.duree_sim, (b-a))
+                    param_en_plus.append(duree_sim)
+                    param_en_plus.append(b-a)
 
                     concentration_formate = np.array(results[0])
                     mass_form = np.array(results[2])
 
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     fig_config = Affichage(param_en_plus)
@@ -88,7 +89,7 @@ class distribution:
 
                     a = time.time()
 
-                    model_config = Model_bl_sf(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
+                    model_config = Model_bl_sf(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init,duree_sim)
                     results = model_config.run()
                     
                     b = time.time()
@@ -97,7 +98,7 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     concentration_formate = np.array(results[0]).sum(axis=1)
@@ -112,7 +113,7 @@ class distribution:
 
                     a = time.time()
 
-                    model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init)
+                    model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init,duree_sim)
                     results = model_config.run()
 
                     b = time.time()
@@ -125,7 +126,7 @@ class distribution:
                     b = time.time()
                     mass_form = np.array(results[2])
                     
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     fig_config = Affichage(param_en_plus)
@@ -151,11 +152,17 @@ class distribution:
             concentration_formate = np.array(results[2])
             mass_form = np.array(results[1])
 
-            param_en_plus.append(model_config.duree_sim)
+            param_en_plus.append(duree_sim)
             param_en_plus.append(b-a)
                             
             fig_config = Affichage(param_en_plus)
             fig_config.afficher(concentration_formate,mass_form,results[0], Quantiles)
+
+            #print (f"{model_config.__dict__}")
+            #print (f"{model_config_bl.__dict__}")
+
+            #plt.plot(model_config.levels, model_config.rho_r_profile)
+            #plt.show()
 
             #print (f"{model_config.__dict__}")
             #print (f"{model_config_bl.__dict__}")

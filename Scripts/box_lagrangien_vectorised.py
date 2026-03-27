@@ -18,144 +18,106 @@ from equations import Eq
 
 class Model_bl():
    
-   def __init__(self, number_stitches,number_bin,r,time_step,speed_max,esp,CFL,type_init):
+   def __init__(self, nb_mailles,nb_bins,rapp_mel,time_step,vit_max,esp,CFL,type_init,duree_sim):
         """
-        Here we initialise the non-spatial fixed parameters and allow important variables 
-        to travel between functions. We also call the initialisation.
+        On initialise le modèle Box-Lagrangien indéformable en prenant en ompte les paramètres d'entrée du modèle
         """
 
-        self.number_stitches = number_stitches
-
-        self.duree_sim = 2000  # length of simulation in seconds
-
-        self.delta_t = time_step # length of time step in seconds
-
-        self.nb_step = self.duree_sim // self.delta_t  # number of time step
-
-        self.nb_diam = number_bin # number of type of diameter
+        self.nb_mailles = nb_mailles
+        self.delta_t = time_step
+        self.nb_bins = nb_bins
         self.esp = esp
-   
-        # Ajouter le calcul des différents diamètres dans une liste self.diameter
-
-        """
-        grid0 is in the form of a numpy dataset of size nb_mesh*(nb_diam*2):
-
-        concentration_bin_1 : number of particles with diameter 1 in each level: N0(1)  N1(1)  N2 (1)  N3(1) ...
-        ...
-        concentration_bin_i : number of particles with diameter i in each level: N0(i)  N1(i)  N2 (i)  N3(i) ...
-        ...
-        concentration_bin_n : number of particles with diameter n in each level: N0(n)  N1(n)  N2 (n)  N3(n) ...
-        ...
-        diameter_bin_1 : mean diameter in the first bin: D1
-        ...
-        diameter_bin_i : mean diameter in the i-th bin: Di
-        ...
-        diameter_bin_n : mean diameter in the n-th bin: Dn
-        ...
-        rho_r_bin_1 : rho_r of particles with diameter 1 in each level: Rho_r_1 (1)  Rho_r_2 (1)  Rho_r_3 (1) Rho_r_4 (1) ...
-        ...
-        rho_r_bin_i : rho_r of particles with diameter i in each level: Rho_r_1 (i)  Rho_r_2 (i)  Rho_r_3 (i) Rho_r_4 (i) ...
-        ...
-        rho_r_bin_n : rho_r of particles with diameter n in each level: Rho_r_1 (n)  Rho_r_2 (n)  Rho_r_3 (n) Rho_r_4 (n) ...
         
-        level : height of upper mesh interfaces: Z0  Z1  Z2  Z3  ...
-        
-        """
+        # On calcule le nombre de pas de temps
+        self.nb_step = duree_sim // self.delta_t
+
+        # ---Configuration des classes extérieures---
+        self.Eq_config = Eq(self.esp)
+
+        # --- # On configure le modèle avec les données d'entrée ---
    
-        self.condi_init = InitialCond(self.number_stitches,self.esp,"bin",nb_classes = self.nb_diam,mode=type_init,r=r)
+        self.condi_init = InitialCond(self.nb_mailles,self.esp,"bin",nb_classes = self.nb_bins,mode=type_init,r=rapp_mel)
+
+        #---Récupération des variables---
    
         self.grid0 = self.condi_init.data
-
-        self.vertical_boundaries = self.condi_init.levels_boundaries
-
-        self.size_diam = np.array(self.condi_init.diameters+[self.condi_init.diameters[-1]*2])
+        self.hauteur_interf = np.concatenate(([0],self.condi_init.levels_boundaries))              # On ajoute le sol
+        self.taille_diam = np.array(self.condi_init.diameters+[self.condi_init.diameters[-1]*2])
 
 
-        # On calcule les épaisseurs des mailles
-        h_interfaces = np.concatenate(([0],self.vertical_boundaries))
-        self.h_interfaces = h_interfaces
+        # Initialisation des variables
 
-        self.epaiss_maille = np.array([h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(self.number_stitches)])
-        
+        self.eau_au_sol = [0]   
 
-       
-        # Initialisation of variables
-
-        self.water_on_floor=0   # Mass of water wich has touched the ground
-
-        self.wat_flo_on_time=[0]  # List of this mass in time, here, time = 0 soit no precipitation
-
-        self.dz = self.grid0["level"].values[2]-self.grid0["level"].values[1]   # length of a stitch
+        self.epaiss_maille = np.array([self.hauteur_interf[stitche+1]-self.hauteur_interf[stitche] for stitche in range(self.nb_mailles)])
 
         if CFL == "Yes":
-            self.speed_max = self.dz / self.delta_t
+            # On prend la condition CFL la plus contraignante soit celle où la vitesse max est la plus faible
+            self.vit_max = min(self.epaiss_maille) / self.delta_t
+
         else:
-            self.speed_max = speed_max
+            self.vit_max = vit_max
 
-        self.z_top_ref = self.grid0["level"].values[-1] + self.dz/2
 
-        self.list_data = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]] #liste des valeurs par bin et par pas de temps
-        self.list_mass = [[self.grid0[f"rho_r_bin_{diam}"].values for diam in range(1,self.nb_diam+1)]]
+        self.h_max = self.hauteur_interf[-1]
+
+        self.profil_conc_bin = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_bins+1)]] #profil des valeurs par bin et par pas de temps
+        self.profil_cont_bin = [[self.grid0[f"rho_r_bin_{diam}"].values for diam in range(1,self.nb_bins+1)]]
 
         # speed is calculated
 
-        self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
-        print(self.list_data)
-        self.lam_init = Eq(esp).Liste_Lanbda(sum(self.list_mass[0]),sum(self.list_data[0]))[-1]
-        print("lambdaz:", self.lam_init)
-        self.conc_tot_init = sum(self.list_data[0])[-1]
-        print("concen:", self.conc_tot_init)
+        self.vit_bin = [self.Eq_config.Vitesse(self.taille_diam[n_diam]) * int(self.Eq_config.Vitesse(self.taille_diam[n_diam]) <= self.vit_max) + self.vit_max * int(self.Eq_config.Vitesse(self.taille_diam[n_diam]> self.vit_max)) for n_diam in range(self.nb_bins)]
 
-   def mass(self,grid,var, diam):
-       return sum(grid[var].values*self.epaiss_maille)*Eq(self.esp).Masse((self.size_diam[diam-1]+self.size_diam[diam])/2)
+        # On enregistre ces données pour la courbe de référence
+        self.lam_init = self.Eq_config.Liste_Lanbda(sum(self.profil_cont_bin[0]),sum(self.profil_conc_bin[0]))[-1]
+        self.conc_tot_init = sum(self.profil_conc_bin[0])[-1]
+        
 
-   def advect_down(self,ds, V, dt):
+   def conc_to_mass(self,grid,var, diam):
+       """
+       Prend en entrée les concentrations d'un bin par maille sur la colonne et renvoie sa masse totale 
+       à partir du diamètre du bin
+       """
+       nb_part_col = sum(grid[var].values*self.epaiss_maille) 
+
+       masse_part = self.Eq_config.Masse((self.taille_diam[diam-1]+self.taille_diam[diam])/2)
+       return nb_part_col * masse_part
+   
+
+   def sedim(self,grid, V, dt):
         """
         Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
         """
 
-        shift = -min(V,self.speed_max) * dt   # On calcule le futur mouvement verticale
+        dep = -min(V,self.vit_max) * dt   # On calcule le futur mouvement verticale
 
         # On applique au centre des mailles le déplacement
-        ds = ds.assign_coords(level=ds["level"] + shift)
-        return ds
+        grid_dep = grid.assign_coords(level=grid["level"] + dep)
+        return grid_dep
    
-   def add_stitche(self,new_grid,diam):
+   def ajout_maille(self,grid_dep,diam):
     
-        # We create new stitches above the new_grid to have a initially grid tottaly cover
+        """ 
+        On veut que la grille déplacée recouvre totalement la grille initiale pour utiliser la fonction regrid
+        Ainsi, on ajoute les mailles nécessaires
+        """
 
-        nb_stitche_create = 1
+        h_interf_haute = grid_dep["level"].values[-1]    # hauteur du haut de la colonne déplacée
 
-        z_mid_last_i = new_grid["level"].values[-1]    # height of the highest center of stitch
+        # On ajoute une maille à la colonne déplacée et on ajoute cette nouvelle maille aux données tel que la concentration dans le bin soit nulle
+        grid_augmente = np.sort(np.unique(np.append(grid_dep["level"].values,h_interf_haute+self.epaiss_maille[-1])))
+        grid_dep = grid_dep.reindex(level = grid_augmente)
+        grid_dep[f"concentration_bin_{diam}"] = grid_dep[f"concentration_bin_{diam}"].copy(data=grid_dep[f"concentration_bin_{diam}"].data).fillna(0)
 
-        grid_add = np.sort(np.unique(np.append(new_grid["level"].values,z_mid_last_i+self.dz)))
+        h_interf_haute = grid_dep["level"].values[-1] # On recalcule la hauteur de cette colonne déplacée avec la maille ajoutée
 
-        # We add this new stitch with 0 concentration to the dataset
-
-        new_grid = new_grid.reindex(level = grid_add)
-
-        new_grid[f"concentration_bin_{diam}"] = new_grid[f"concentration_bin_{diam}"].copy(data=new_grid[f"concentration_bin_{diam}"].data).fillna(0)
-
-        nb_stitche_create  += 1   # We add 1 to the number of stitch created to see if we need an other one
+        if h_interf_haute < self.h_max:  # Tant que l'on ne dépasse pas la hauteur de la colonne initiale
 
 
-        while new_grid["level"].values[-1] <=self.z_top_ref:  # If we are above the maximum level, we stop
-
-            z_mid_last_i = new_grid["level"].values[-1]  # New evaluation of the height of the highest center of stitch
-
-            """
-            ###SAME PROCESS###
-            """
-
-            grid_add = np.sort(np.unique(np.append(new_grid["level"].values,z_mid_last_i+self.dz)))
-
-            new_grid = new_grid.reindex(level = grid_add)
-
-            new_grid[f"concentration_bin_{diam}"] = new_grid[f"concentration_bin_{diam}"].copy(data=new_grid[f"concentration_bin_{diam}"].data).fillna(0)
-
-            nb_stitche_create  += 1
-
-        return new_grid
+            grid_augmente = np.sort(np.unique(np.append(grid_dep["level"].values,self.h_max)))
+            grid_dep = grid_dep.reindex(level = grid_augmente)
+            grid_dep[f"concentration_bin_{diam}"] = grid_dep[f"concentration_bin_{diam}"].copy(data=grid_dep[f"concentration_bin_{diam}"].data).fillna(0)
+        return grid_dep
    
    def run(self):
         
@@ -172,63 +134,61 @@ class Model_bl():
         format_affichage_time = "{l_bar}|{bar}| {n_fmt}/{total_fmt} pas de temps | temps écoulé : {elapsed} < temps restant {remaining} |" # definition of the format of the tqdm bar
         format_affichage_diam = "-> {desc} |{bar}| {n_fmt}/{total_fmt} bins  | {elapsed}<{remaining} |                                                                                           "
 
-        for t_time in tqdm(range(self.nb_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_diam} bins : ", position = 0, colour = "blue"):
+        for t_time in tqdm(range(self.nb_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien Step_By_Step à {self.nb_bins} bins : ", position = 0, colour = "blue"):
             
             grid_dt = xr.Dataset(data_vars={}, coords = {"level" : grid_t["level"]})
 
-            list_data_bin = []
-            list_mass_bin = []
-            wat_flo_tot=[]
+            profil_conc_bin_dt = []
+            profil_cont_bin_dt = []
+            eau_au_sol_dt=[]
 
 
-            for diam in tqdm(range(1,self.nb_diam+1), bar_format = format_affichage_diam, desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False, colour = "green"):  
+            for diam in tqdm(range(1,self.nb_bins+1), bar_format = format_affichage_diam, desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False, colour = "green"):  
                 
                 # Sedimentation is processed
 
-                new_grid = self.advect_down(grid_t,self.speeds[diam-1],self.delta_t)
+                grid_dep = self.sedim(grid_t,self.vit_bin[diam-1],self.delta_t)
 
                 # we add the sticthes above
-                new_grid = self.add_stitche(new_grid, diam)
+                grid_dep = self.ajout_maille(grid_dep, diam)
 
                 # We put the stagerd grid on the good grid
 
-                grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
+                grid_regrid = grid_dep.regrid.conservative(grid_t, time_dim=None)
 
                 
                 
                 # Here, we transform a sparse vector to a dense one
-                grid_on_old[f"concentration_bin_{diam}"] = grid_on_old[f"concentration_bin_{diam}"].copy(data=grid_on_old[f"concentration_bin_{diam}"].data.todense())
+                grid_regrid[f"concentration_bin_{diam}"] = grid_regrid[f"concentration_bin_{diam}"].copy(data=grid_regrid[f"concentration_bin_{diam}"].data.todense())
 
                
                 # We want to see how much rain touch the ground during the time step
-                M0 = float(f"{self.mass(grid_t,f"concentration_bin_{diam}",diam):.2e}")
-                M1 = float(f"{self.mass(grid_on_old,f"concentration_bin_{diam}",diam):.2e}")
+                M0 = float(f"{self.conc_to_mass(grid_t,f"concentration_bin_{diam}",diam):.2e}")
+                M1 = float(f"{self.conc_to_mass(grid_regrid,f"concentration_bin_{diam}",diam):.2e}")
 
                 
-                self.water_on_floor = M0-M1
+                eau_au_sol_bin = M0-M1
 
 
-                list_data_bin.append(grid_on_old[f"concentration_bin_{diam}"].values)
-                list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
-                wat_flo_tot.append(self.water_on_floor)
+                profil_conc_bin_dt.append(grid_regrid[f"concentration_bin_{diam}"].values)
+                profil_cont_bin_dt.append(grid_regrid[f"concentration_bin_{diam}"].values*self.Eq_config.Masse(self.taille_diam[diam-1]))
+                eau_au_sol_dt.append(eau_au_sol_bin)
                 
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),list_data_bin[-1])})
-                grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),list_mass_bin[-1])})
+                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),profil_conc_bin_dt[-1])})
+                grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),profil_cont_bin_dt[-1])})
 
                 self.condi_init.continuous_source (list_N=grid_dt[f"concentration_bin_{diam}"], nb_diam = diam)
 
-            self.list_mass.append(list_mass_bin)
-            self.wat_flo_on_time.append(sum(wat_flo_tot))
-            self.list_data.append(list_data_bin)
+            self.profil_conc_bin.append(profil_conc_bin_dt)
+            self.profil_cont_bin.append(profil_cont_bin_dt)
+            self.eau_au_sol.append(sum(eau_au_sol_dt))
+            
             grid_t = grid_dt.copy()
             
         print ("---------------------------------------")
         print(" ")
-        cont_to_mm = np.array(self.wat_flo_on_time)
 
-
-            
-        return self.list_data,cont_to_mm,self.list_mass 
+        return self.profil_conc_bin,self.eau_au_sol,self.profil_cont_bin 
 
 
 

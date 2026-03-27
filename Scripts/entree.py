@@ -185,4 +185,4 @@ diag = parser.parse_args().diag
 # We print its choices
 print(f"Launch : {model} {type_advance} | {number_stitches} stiches | deformability : {deformable} | {number_bin} bins | {mixing_ratio} mixing ratio | time step : {time_step} s | Vmax : {speed_max} m/s| specie : {esp} | CFL : {CFL} | test: {efficiency_test} | init : {type_init} | diagnosis : {diag}")
 
-distribution(model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,efficiency_test,type_init, path_phyex, path_fig, diag)
+distribution(model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init, path_phyex, path_fig, diag)
