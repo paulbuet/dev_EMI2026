@@ -16,7 +16,7 @@ from phyex import Eule, Eule2, Stat
 import numpy as np
 import time
 from pathlib import Path
-import os, sys
+import sys
 import matplotlib.pyplot as plt
 
 
@@ -67,7 +67,42 @@ class distribution:
                     Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
                     Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, duree_sim)
                     #Affichage.Afficher()
+                        results = model_config.run()
+                        concentration_formate = np.array(results[0])
+                        mass_form = np.array(results[2])
 
+                        fig_config = Affichage(model, path_fig,type_advance,deformable)
+                        fig_config.afficher(concentration_formate,mass_form,results[1])
+
+                else:
+                    if deformable == "No":
+                        a = time.time()
+                        model_config = Model_bl_sf(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
+                        b = time.time()
+
+                        results = model_config.run()
+                        concentration_formate = np.array(results[0]).sum(axis=1)
+                        mass_form = np.array(results[2]).sum(axis=1)
+
+                        fig_config = Affichage(model, path_fig,type_advance,deformable)
+                        fig_config.afficher(concentration_formate,mass_form,results[1])
+
+                    else:
+                        a = time.time()
+                        model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init)
+                        b = time.time()
+
+                        results = model_config.run()
+                        concentration_formate = np.array(results[0])
+                        mass_form = np.array(results[2])
+                        
+                        fig_config = Affichage(model, path_fig,type_advance,deformable)
+                        fig_config.afficher(concentration_formate,mass_form,results[1])
+
+            elif model in ('EULE', 'EULE2', 'STAT'):
+                a = time.time()
+                cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
+                model_config = cls(number_stitches,number_bin,time_step,speed_max,esp,CFL,type_init)
             else:
                 if deformable == "No":
                     a = time.time()
@@ -121,6 +156,12 @@ class distribution:
             Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance, deformable)
             Affichage.Affichage_Precipitation(results[0], model, path_fig, type_advance, deformable, Quantiles, model_config.duree_sim)
             Affichage.Afficher()
+                results = model_config.run()
+                concentration_formate = np.array(results[2])
+                mass_form = np.array(results[1])
+
+                fig_config = Affichage(model, path_fig,type_advance,deformable)
+                fig_config.afficher(concentration_formate,mass_form,results[0])
 
             #print (f"{model_config.__dict__}")
             #print (f"{model_config_bl.__dict__}")

@@ -177,6 +177,8 @@ class Model_bl():
                 grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),profil_conc_bin_dt[-1])})
                 grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),profil_cont_bin_dt[-1])})
 
+                self.condi_init.continuous_source (list_N=grid_dt[f"concentration_bin_{diam}"], nb_diam = diam)
+
             self.profil_conc_bin.append(profil_conc_bin_dt)
             self.profil_cont_bin.append(profil_cont_bin_dt)
             self.eau_au_sol.append(sum(eau_au_sol_dt))

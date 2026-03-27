@@ -13,6 +13,7 @@
 from math import *
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
@@ -20,9 +21,9 @@ from matplotlib.colors import Normalize, LogNorm
 
 
 
-class Affichage :
+class Figure :
 
-    def Affichage_Concentration(Concentration, typ, model, path_fig, type_advance,deformable): #type="concentration" ou "masse"
+    def concentration_content(Concentration, typ, chemin): #type="concentration" ou "masse"
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -36,75 +37,65 @@ class Affichage :
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable) / Path(typ)
+        file_location = chemin / Path (typ)
         plt.savefig(str(file_location))
 
 
-    def Affichage_Precipitation(Precip, model, path_fig, type_advance,deformable, Quantiles, duree_sim):
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from matplotlib.ticker import MultipleLocator, MaxNLocator
-        from pathlib import Path
+    def precipitation(Precip, chemin):
+        Precip=np.array(Precip)
+        liste=np.zeros(len(Precip))
+        Cumul=[]
 
-        # --- Données ---
-        Precip = np.array(Precip, dtype=float)
+        for i in range(len(Precip)):
+            liste[i]=1
+            Cumul.append(np.dot(Precip, liste))
+        fig, ax1 = plt.subplots()
+        ax = plt.gca()
+        ax.xaxis.set_major_locator(MultipleLocator(1))
+        ax.yaxis.set_major_locator(MultipleLocator(1))
+        ax.set_xlim(left=0)
+        x_max = len(Precip)-1
+        ticks = np.linspace(0, x_max, 11)
+        ax.set_xticks(ticks)
+        ax.set_xticklabels([f"{t:.2f}" for t in ticks])
+        ax.yaxis.set_major_locator(MaxNLocator(10))
 
-        reference = np.array(Quantiles[0], dtype=float)
-        time3 = np.array(Quantiles[1], dtype=float)
-
-        # Ajout du point initial (0,0)
-        reference = np.insert(reference, 0, 0)
-        time3 = np.insert(time3, 0, 0)
-
-        # --- Cumul correct ---
-        Cumul = np.cumsum(Precip)
-
-        # --- Temps ---
-        n = len(Precip)
-        time = np.linspace(0, duree_sim, n)
-        dt = time[1] - time[0]
-        time2 = time - dt / 2 # pour centrer les barres
-
-        # --- Figure ---
-        fig, ax1 = plt.subplots(figsize=(10, 6))
-
-        # --- Axe principal (barres) ---
-        ax1.bar(time2, Precip, width=dt, color="blue", label="Précip par pas de temps")
-        ax1.set_xlabel("Temps", fontsize=14)
-        ax1.set_ylabel("Précipitation", fontsize=14)
-
-        # --- Axe secondaire (cumul) ---
+        time=np.linspace(1, len(Precip), len(Precip))
+        time2 = time -(time[1]-time[0])/2
+        ax1.bar(time2, Precip, color="blue", label="Précip par pas de temps")
+        ax1.set_xlabel("temps", fontsize=18)
+        ax1.set_ylabel("Précip par pas de temps", fontsize=18)
         ax2 = ax1.twinx()
-        ax2.plot(time, Cumul, '--', color="red", linewidth=2, label="Cumul")
-        ax2.plot(time3, reference, '--', color="green", linewidth=2, label="Cumul théorique")
-        ax2.set_ylabel("Cumul", fontsize=14)
+        ax2.plot(time, Cumul, '--', color="red", label="Cumul")
+        ax2.set_ylabel('Cumul', fontsize=18)
+        plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
+        plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
+        fig.legend(loc=2)
+        file_location = chemin / Path("Précipitation")
+        fig.savefig(str(file_location))
 
-        # --- Axes propres ---
-        ax1.set_xlim(0, max(time3.max(), time.max()) * 1.05)
+    
+class Affichage :
 
-        ax1.set_ylim(0, Precip.max() * 1.2 if Precip.max() > 0 else 1)
-        ax2.set_ylim(0, max(Cumul.max(), reference.max()) * 1.2 if max(Cumul.max(), reference.max()) > 0 else 1)
+    def __init__(self,model,path_fig,type_advance,deformability):
 
-        ax1.xaxis.set_major_locator(MaxNLocator(10))
-        ax1.yaxis.set_major_locator(MaxNLocator(10))
-        ax2.yaxis.set_major_locator(MaxNLocator(10))
+        if deformability == "Yes" :
+            deformable = "Boîte déformable"
+        else :
+            deformable = "Boîte fixe"
 
-        # --- Grille ---
-        ax1.grid(True, axis='x', linestyle=':', linewidth=1)
+        if model in ["EULE", "EULE2", "STAT"]:
+            self.chemin = os.path.join(Path(path_fig) / Path(model))
+            os.makedirs(self.chemin, exist_ok=True)
+        else :
+            self.chemin = os.path.join(Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable))
+            os.makedirs(self.chemin, exist_ok=True)
+        
+    
+    def afficher (self,Concentration,Contenu,Precip) :
+        
+        Figure.concentration_content(Concentration,"Concentration", self.chemin)
+        Figure.concentration_content(Contenu, "Contenu", self.chemin)
+        Figure.precipitation(Precip, self.chemin)
 
-        # --- Légende combinée ---
-        lines1, labels1 = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        fig.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
-
-        # --- Titre ---
-        plt.title("Évolution des précipitations et cumul", fontsize=16)
-
-        # --- Sauvegarde ---
-        file_location = Path(path_fig) / model / type_advance / deformable / "Precipitation"
-        file_location.mkdir(parents=True, exist_ok=True)
-
-        fig.savefig(file_location / "precipitation.png", dpi=300, bbox_inches='tight')
-
-    def Afficher () :
         plt.show()

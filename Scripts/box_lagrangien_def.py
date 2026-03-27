@@ -137,8 +137,10 @@ class model_bl_def:
             
             
 
-            profil_rho_r_t = profil_rho_r_dt
-            profil_concentration_t = profil_concentration_dt
+            rho_r_profil = rho_r_profil_dt
+            concentration_profil = concentration_profil_dt
+
+            self.condi_config.continuous_source(list_N=concentration_profil,list_rho_r=rho_r_profil,M=2)
 
 
         return profil_concentration, liste_precip, profil_rho_r
