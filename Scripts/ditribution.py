@@ -9,9 +9,9 @@ from affichage import Affichage
 from equations import Eq
 
 
-"""
+
 from phyex import Eule, Eule2, Stat
-"""
+
 
 import numpy as np
 import time
@@ -68,6 +68,8 @@ class distribution:
 
                     lam=model_config.lam_init
                     N=model_config.conc_tot_init
+
+                    print(N)
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
                     param_en_plus.append(duree_sim)
@@ -139,7 +141,7 @@ class distribution:
             a = time.time()
 
             cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
-            model_config = cls(number_stitches,number_bin,time_step,speed_max,esp,CFL,type_init)
+            model_config = cls(number_stitches,mixing_ratio,time_step,speed_max,esp,CFL,type_init,duree_sim)
 
             results = model_config.run()
 
@@ -147,6 +149,7 @@ class distribution:
 
             lam=model_config.lam_init
             N=model_config.conc_tot_init
+            print(N)
             Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
             concentration_formate = np.array(results[2])
