@@ -22,7 +22,10 @@ from matplotlib.colors import Normalize, LogNorm
 
 class Affichage :
 
-    def Affichage_Concentration(Concentration, typ, model, path_fig, type_advance,deformable): #type="concentration" ou "masse"
+    def Affichage_Concentration(Concentration, typ, param_en_plus): 
+        
+        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
+        
         Temps_simu=len(Concentration)
         nb_boites=len(Concentration[0])
         Concentration=np.array(Concentration)
@@ -36,7 +39,14 @@ class Affichage :
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
         plt.colorbar()
-        file_location = "."/Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable) / Path(typ)
+        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'):
+            file_location = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
+        else :
+            if param_en_plus[3] == "No" :
+                file_location = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
+            else :
+                file_location = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path(typ)
+
         plt.savefig(str(file_location))
 
 

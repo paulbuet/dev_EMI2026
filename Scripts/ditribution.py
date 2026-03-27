@@ -41,6 +41,7 @@ class distribution:
 
                     if deformable == "No":
                         a = time.time()
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin)
                         model_config = Model_bl_old(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
                         
                         results = model_config.run()
@@ -64,13 +65,14 @@ class distribution:
 
                         mass_form = np.array(results[2]).sum(axis=1)
 
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         Affichage.Afficher()
 
                 else:
                     if deformable == "No":
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin)
                         a = time.time()
                         model_config = Modelbl_sf_old(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
                        
@@ -92,15 +94,16 @@ class distribution:
                         b = time.time()
                         print (f"temps v : {b-a} s")
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         Affichage.Afficher()
         else : 
             
             if model == "Box_Lagrangien":
                 if type_advance == "Step_By_Step":                    
                     if deformable  == "No":     #  Par défaut on arrive ici.
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin)
                         a = time.time()
                         model_config = Model_bl(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
                        
@@ -114,11 +117,12 @@ class distribution:
                         # print(results[0])
                         b = time.time()
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         #Affichage.Afficher()
                     else:
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp)
                         a = time.time()
                         model_config = model_bl_def(number_stitches,time_step,esp,mixing_ratio,type_init)
 
@@ -131,13 +135,14 @@ class distribution:
                         concentration_formate = np.array(results[0])
                         b = time.time()
                         mass_form = np.array(results[2])
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         #Affichage.Afficher()
 
                 else:
                     if deformable == "No":
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin)
                         a = time.time()
                         model_config = Model_bl_sf(number_stitches,number_bin,mixing_ratio,time_step,speed_max,esp,CFL,type_init)
                         
@@ -150,11 +155,12 @@ class distribution:
                         concentration_formate = np.array(results[0]).sum(axis=1)
                         b = time.time()
                         mass_form = np.array(results[2]).sum(axis=1)
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         #Affichage.Afficher()
                     else:
+                        param_en_plus = (model,path_fig,type_advance,deformable,number_stitches, time_step, esp)
                         a = time.time()
                         model_config = model_bl_def_sf(number_stitches,time_step,esp,mixing_ratio,type_init)
                         results = model_config.run()
@@ -166,11 +172,12 @@ class distribution:
                         concentration_formate = np.array(results[0])
                         b = time.time()
                         mass_form = np.array(results[2])
-                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig,type_advance,deformable)
-                        Affichage.Affichage_Precipitation(results[1], model,path_fig,type_advance,deformable, Quantiles, model_config.duree_sim)
+                        Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
+                        Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                        Affichage.Affichage_Precipitation(results[1], param_en_plus, Quantiles, model_config.duree_sim)
                         #Affichage.Afficher()
             elif model in ('EULE', 'EULE2', 'STAT'):
+                param_en_plus = (model,path_fig, number_stitches, time_step, esp)
                 a = time.time()
                 cls = {'EULE': Eule, 'EULE2': Eule2, 'STAT': Stat}[model]
                 #print (cls)
@@ -184,10 +191,10 @@ class distribution:
                 Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
                 concentration_formate = np.array(results[2])
-                Affichage.Affichage_Concentration(concentration_formate, "Concentration", model, path_fig, type_advance, deformable)
+                Affichage.Affichage_Concentration(concentration_formate, "Concentration", param_en_plus)
                 mass_form = np.array(results[1])
-                Affichage.Affichage_Concentration(mass_form, "Masse", model, path_fig, type_advance, deformable)
-                Affichage.Affichage_Precipitation(results[0], model, path_fig, type_advance, deformable, Quantiles, model_config.duree_sim)
+                Affichage.Affichage_Concentration(mass_form, "Masse", param_en_plus)
+                Affichage.Affichage_Precipitation(results[0], param_en_plus, Quantiles, model_config.duree_sim)
                 Affichage.Afficher()
 
                 #print (f"{model_config.__dict__}")
