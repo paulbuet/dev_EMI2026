@@ -30,12 +30,12 @@ class model_bl_def:
         self.Eq_config = Eq(esp)
         
         # On configure le modèle avec les données d'entrée
-        condi_config = IC(nb_mailles, esp, "Bulk", mode = mode, r = r)
+        self.condi_init = IC(nb_mailles, esp, "Bulk", mode = mode, r = r)
         
 
         # On récupère les concentrations et le profil de rho_r
-        self.grid_0 = condi_config.data
-        self.hauteur_interf = np.concatenate(([0],condi_config.levels_boundaries))
+        self.grid_0 = self.condi_init.data
+        self.hauteur_interf = np.concatenate(([0],self.condi_init.levels_boundaries))
 
         # On calcule la profil des diamètre necessaire pour la sédimentation des mailles
         self.epaiss_maille = np.array([self.hauteur_interf[stitche+1]-self.hauteur_interf[stitche] for stitche in range(nb_mailles)])
@@ -85,7 +85,6 @@ class model_bl_def:
 
             # On itère sur les mailles 
             for maille_dep in tqdm(np.where(profil_concentration_t!=0)[0],bar_format = format_affichage_level,desc = f"Calculs t = {t_time * self.delta_t} / {self.nb_step * self.delta_t} s : ", leave = False, colour = "green"):
-                
                 
                 profil_conc_maill = []
                 profil_rho_r_maill = []
@@ -137,10 +136,10 @@ class model_bl_def:
             
             
 
-            rho_r_profil = rho_r_profil_dt
-            concentration_profil = concentration_profil_dt
+            profil_rho_r_t = profil_rho_r_dt
+            profil_concentration_t = profil_concentration_dt
 
-            self.condi_config.continuous_source(list_N=concentration_profil,list_rho_r=rho_r_profil,M=2)
+            self.condi_init.continuous_source(list_N=profil_concentration_t,list_rho_r=profil_rho_r_t,M=2)
 
 
         return profil_concentration, liste_precip, profil_rho_r

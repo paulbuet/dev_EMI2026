@@ -70,12 +70,12 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus = param_en_plus + (model_config.duree_sim, (b-a))
+                    param_en_plus = param_en_plus + [duree_sim, (b-a)]
 
                     concentration_formate = np.array(results[0])
                     mass_form = np.array(results[2])
 
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     fig_config = Affichage(param_en_plus)
@@ -97,7 +97,7 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     concentration_formate = np.array(results[0]).sum(axis=1)
@@ -125,7 +125,7 @@ class distribution:
                     b = time.time()
                     mass_form = np.array(results[2])
                     
-                    param_en_plus.append(model_config.duree_sim)
+                    param_en_plus.append(duree_sim)
                     param_en_plus.append(b-a)
 
                     fig_config = Affichage(param_en_plus)
@@ -151,7 +151,7 @@ class distribution:
             concentration_formate = np.array(results[2])
             mass_form = np.array(results[1])
 
-            param_en_plus.append(model_config.duree_sim)
+            param_en_plus.append(duree_sim)
             param_en_plus.append(b-a)
                             
             fig_config = Affichage(param_en_plus)
