@@ -66,40 +66,9 @@ class Figure :
 
         file_location = chemin / Path(typ)
         fig.savefig(str(file_location))
-
-
-
-
-
-
-    def sedimentation_time(Concentration, typ, chemin, params): #type="concentration" ou "masse"
-        Concentration=np.array(Concentration)
-        Transpose=Concentration.T
-        plt.figure()
-        orig_map=plt.cm.get_cmap('gist_ncar')
-        reversed_map = orig_map.reversed()
-        norm = Normalize(vmin=0,vmax = max(Concentration[0]))
-        plt.pcolormesh(Transpose,cmap=reversed_map, norm=norm)
-        plt.title(f"{typ} : évolution dans le temps", fontsize=22)
-        plt.xlabel("Temps", fontsize=18)
-        plt.ylabel("Mailles du modèle", fontsize=18)
-        if params[0] in ('EULE', 'EULE2', 'STAT'):
-            #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
-            plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, \n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
-        else :
-            if params[3] == "Yes" :
-                params[3]= "déformable"
-                plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
-            else :
-                params[3] = "indéformable"
-                plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
-        plt.subplots_adjust(bottom=0.2)
-
-        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
-        plt.colorbar()
-        file_location = chemin / Path (typ)
-        plt.savefig(str(file_location))
         plt.close()
+
+
 
 
     def precipitation(Precip, chemin, params, Quantiles):

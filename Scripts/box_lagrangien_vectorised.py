@@ -63,7 +63,6 @@ class Model_bl():
 
         self.profil_conc_bin = [[self.grid0[f"concentration_bin_{diam}"].values for diam in range(1,self.nb_bins+1)]] #profil des valeurs par bin et par pas de temps
         self.profil_cont_bin = [[self.grid0[f"rho_r_bin_{diam}"].values for diam in range(1,self.nb_bins+1)]]
-
         # speed is calculated
 
         self.vit_bin = [self.Eq_config.Vitesse(self.taille_diam[n_diam]) * int(self.Eq_config.Vitesse(self.taille_diam[n_diam]) <= self.vit_max) + self.vit_max * int(self.Eq_config.Vitesse(self.taille_diam[n_diam]> self.vit_max)) for n_diam in range(self.nb_bins)]

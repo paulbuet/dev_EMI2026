@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 class distribution:
     def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, type_init, path_phyex, path_fig, diag):
         h_tot=12000
-        duree_sim = 2000
+        duree_sim = 5000
         path_to_phyex = Path(path_phyex) / "PHYEX"
         sys.path.append(str(path_to_phyex))
         #from phyex import Eule, Eule2, Stat
