@@ -23,12 +23,10 @@ from matplotlib.colors import Normalize, LogNorm
 
 class Figure :
 
-    def concentration_content(Concentration, typ, chemin): #type="concentration" ou "masse"
-        Temps_simu=len(Concentration)
-        nb_boites=len(Concentration[0])
+    def sedimentation_time(Concentration, typ, chemin, params): #type="concentration" ou "masse"
         Concentration=np.array(Concentration)
         Transpose=Concentration.T
-        plt.figure() # (figsize=(Temps_simu, nb_boites))
+        plt.figure()
         orig_map=plt.cm.get_cmap('gist_ncar')
         reversed_map = orig_map.reversed()
         norm = Normalize(vmin=0,vmax = max(Concentration[0]))
@@ -36,66 +34,133 @@ class Figure :
         plt.title(f"{typ} : évolution dans le temps", fontsize=22)
         plt.xlabel("Temps", fontsize=18)
         plt.ylabel("Mailles du modèle", fontsize=18)
+        if params[0] in ('EULE', 'EULE2', 'STAT'):
+            #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
+            plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, \n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+        else :
+            if params[3] == "Yes" :
+                params[3]= "déformable"
+                plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+            else :
+                params[3] = "indéformable"
+                plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.1)
+
+        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
         plt.colorbar()
         file_location = chemin / Path (typ)
         plt.savefig(str(file_location))
 
 
-    def precipitation(Precip, chemin):
-        Precip=np.array(Precip)
-        liste=np.zeros(len(Precip))
-        Cumul=[]
+    def precipitation(Precip, chemin, params, Quantiles):
 
-        for i in range(len(Precip)):
-            liste[i]=1
-            Cumul.append(np.dot(Precip, liste))
-        fig, ax1 = plt.subplots()
-        ax = plt.gca()
-        ax.xaxis.set_major_locator(MultipleLocator(1))
-        ax.yaxis.set_major_locator(MultipleLocator(1))
-        ax.set_xlim(left=0)
-        x_max = len(Precip)-1
-        ticks = np.linspace(0, x_max, 11)
-        ax.set_xticks(ticks)
-        ax.set_xticklabels([f"{t:.2f}" for t in ticks])
-        ax.yaxis.set_major_locator(MaxNLocator(10))
 
-        time=np.linspace(1, len(Precip), len(Precip))
-        time2 = time -(time[1]-time[0])/2
-        ax1.bar(time2, Precip, color="blue", label="Précip par pas de temps")
-        ax1.set_xlabel("temps", fontsize=18)
-        ax1.set_ylabel("Précip par pas de temps", fontsize=18)
+        # --- Données ---
+        Precip = np.array(Precip, dtype=float)
+
+        reference = np.array(Quantiles[0], dtype=float)
+        time3 = np.array(Quantiles[1], dtype=float)
+
+        # Ajout du point initial (0,0)
+        reference = np.insert(reference, 0, 0)
+        time3 = np.insert(time3, 0, 0)
+
+        # --- Cumul correct ---
+        Cumul = np.cumsum(Precip)
+
+        # --- Temps ---
+        n = len(Precip)
+        time = np.linspace(0, params[-2], n) #params -2 c'est durée simulation
+        dt = time[1] - time[0]
+        time2 = time - dt / 2 # pour centrer les barres
+
+        # --- Figure ---
+        fig, ax1 = plt.subplots(figsize=(10, 6))
+
+        # --- Création d'un espace texte ---
+
+        gs = fig.add_gridspec(2, 1, height_ratios=[4, 1])
+
+        # --- Axe principal (barres) ---
+        ax1.bar(time2, Precip, width=dt, color="blue", label="Précip par pas de temps")
+        ax1.set_xlabel("Temps", fontsize=14)
+        ax1.set_ylabel("Précipitation", fontsize=14)
+
+        # --- Axe secondaire (cumul) ---
         ax2 = ax1.twinx()
-        ax2.plot(time, Cumul, '--', color="red", label="Cumul")
-        ax2.set_ylabel('Cumul', fontsize=18)
-        plt.title("Evolution des précipitations par pas de temps et cumulée", fontsize=22)
-        plt.grid(axis='x', which='major', markevery=[1,2,3],lw=2, ls=':')
-        fig.legend(loc=2)
+        ax2.plot(time, Cumul, '--', color="red", linewidth=2, label="Cumul")
+        ax2.plot(time3, reference, '--', color="green", linewidth=2, label="Cumul théorique")
+        ax2.set_ylabel("Cumul", fontsize=14)
+
+        # --- Axes propres ---
+        ax1.set_xlim(0, max(time3.max(), time.max()) * 1.05)
+
+        ax1.set_ylim(0, Precip.max() * 1.2 if Precip.max() > 0 else 1)
+        ax2.set_ylim(0, max(Cumul.max(), reference.max()) * 1.2 if max(Cumul.max(), reference.max()) > 0 else 1)
+
+        ax1.xaxis.set_major_locator(MaxNLocator(10))
+        ax1.yaxis.set_major_locator(MaxNLocator(10))
+        ax2.yaxis.set_major_locator(MaxNLocator(10))
+
+        # --- Grille ---
+        ax1.grid(True, axis='x', linestyle=':', linewidth=1)
+
+        # --- Légende combinée ---
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        fig.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+
+        # --- Titre ---
+        plt.title("Évolution des précipitations et cumul", fontsize=16)
+
+        # --- Texte ---
+
+        ax_caption = fig.add_subplot(gs[1])
+        ax_caption.axis("off")
+
+        if params[0] in ('EULE', 'EULE2', 'STAT'):
+            #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
+            ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+        else :
+            if params[3] == "Yes" :
+                params[3]= "déformable"
+                ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+            else :
+                params[3] = "indéformable"
+                ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+
+        plt.subplots_adjust(bottom=0.3)
+
+        # --- Sauvegarde ---
         file_location = chemin / Path("Précipitation")
         fig.savefig(str(file_location))
 
     
 class Affichage :
 
-    def __init__(self,model,path_fig,type_advance,deformability):
+    def __init__(self,param_en_plus):
 
-        if deformability == "Yes" :
-            deformable = "Boîte déformable"
-        else :
-            deformable = "Boîte fixe"
+        # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
 
-        if model in ["EULE", "EULE2", "STAT"]:
-            self.chemin = os.path.join(Path(path_fig) / Path(model))
-            os.makedirs(self.chemin, exist_ok=True)
+
+        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'):
+            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
         else :
-            self.chemin = os.path.join(Path(path_fig) / Path(model) / Path(type_advance)/Path(deformable))
-            os.makedirs(self.chemin, exist_ok=True)
+            if param_en_plus[3] == "No" :
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+            else :
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
         
+        os.makedirs(self.chemin, exist_ok=True)
+        self.params=param_en_plus
     
-    def afficher (self,Concentration,Contenu,Precip) :
+    def afficher (self,Concentration,Contenu,Precip, Quantiles) :
+
         
-        Figure.concentration_content(Concentration,"Concentration", self.chemin)
-        Figure.concentration_content(Contenu, "Contenu", self.chemin)
-        Figure.precipitation(Precip, self.chemin)
+        Figure.sedimentation_time(Concentration,"Concentration", self.chemin, self.params)
+        Figure.sedimentation_time(Contenu, "Contenu", self.chemin, self.params)
+        Figure.precipitation(Precip, self.chemin, self.params, Quantiles)
 
         plt.show()

@@ -229,7 +229,134 @@ class Eq :
             new_val = integrale/(h2-h1)
 
             return new_val
+        
+    def calcul_precip(self,h3, h4, N, dt, lam) :
+        #h3 : hauteur de l'interface du haut de la maille de d'arrivée
+        #h4 : hauteur de l'interface du bas de la maille de d'arrivée
+        #N : concentration actuelle dans la maille
+        #dt : pas de temps
+        f = lambda D,h,sigma,beta,N : N*sigma*D**beta*self.alpha/gamma(self.nu)*lam**(self.alpha*self.nu)*D**(self.alpha*self.nu-1)  * np.exp(-(lam*D)**self.alpha)
+        
+        integrale = -dblquad(f, h3, h4, lambda h : (((np.inf)/(dt*self.c))**(1/self.d)), lambda h : (((h)/(dt*self.c))**(1/self.d)),args=(self.a,self.b,N))[0]
+        #print('val int : ', integrale)
+
+        return integrale
+      
+    def calcul_percentil_chute(self, lam, h_tot): #lam : valeur de lambda dans la maille, h_tot : hauteur totale de la colonne d'eau
+        
+        
+
+
+        D=np.linspace(1e-5, 1, 10000)
+        f=self.Gamma_fois_masse(D, lam)
+        cdf = np.cumsum((f[:-1]+f[1:])/2 * np.diff(D))
+        cdf = np.insert(cdf, 0, 0)
+        cdf/=cdf[-1]
+        q=np.arange(0.02, 1, 0.02)
+        q = np.append(q, 1)
+        D_q = np.interp(q, cdf, D)
+
+        q = np.insert(q, 0, 0)
+        D_q = np.insert(D_q, 0, 0)
+        
+        print("ça c'est q : ", q, " et ça c'est D_q : ", D_q)
+        Liste_masse=[]
+        for i in range(len(q)-1):
+            result, error =  integrate.quad(self.Gamma_fois_masse, D_q[i], D_q[i+1], args=lam)
+            fact = - result/(D_q[i]-D_q[i+1])    
+            Liste_masse.append(fact)
+        Liste_masse = np.array(Liste_masse)
+        print("ça c'est la somme de ma liste de masse : ",np.sum(Liste_masse))
+
+        Liste_vitesse=[]
+        for i in range(len(q)-1):
+            result, error = integrate.quad(self.Vitesse, D_q[i], D_q[i+1])
+            fact = - result/(D_q[i]-D_q[i+1])
+            Liste_vitesse.append(fact)
+        Liste_vitesse = np.array(Liste_vitesse)
+
+        Liste_temps_chute = h_tot/Liste_vitesse
+        Liste_temps_chute = Liste_temps_chute[::-1]
+
+        return q, Liste_temps_chute
     
+
+    def sedimentation_times(self, N, lam, h_tot,number_stitches):
+
+        """
+        Calcule le temps théorique pour lequel une fraction p de la masse
+        a sédimenté.
+
+        Paramètres
+        ----------
+        p_values : array-like
+            Fractions de masse (ex: np.linspace(0.02, 0.98, 49))
+        N : float
+            Concentration initiale
+        lam : float
+            Paramètre lambda de la loi gamma
+        alpha, nu : float
+            Paramètres de la loi gamma
+        a, b : float
+            Loi de masse : m(D) = a D^b
+        c, d : float
+            Loi de vitesse : v(D) = c D^d
+        H : float
+            Hauteur de la colonne
+        D_min, D_max : float
+            Bornes d'intégration
+
+        Retour
+        ------
+        t_values : array
+            Temps associés à chaque p
+        D_values : array
+            Diamètres seuils associés
+        """
+
+        p_values = np.linspace(0.02, 0.99, 50)
+        D_min=1e-6
+        D_max=0.015
+        print("lambda : ", lam)
+        # --- Loi gamma généralisée ---
+        
+
+        # --- Masse totale ---
+        rho_r_tot = N * quad(self.Gamma_fois_masse, D_min, D_max, args=(lam))[0]
+        print("rho_r_tot:",rho_r_tot)
+
+        t_values = []
+        D_values = []
+        mass_in_time=[]
+
+        for p in p_values:
+
+
+            # Fonction à annuler : masse au-dessus de Dx - p*Mtot
+            def func(Dx):
+                integral = N * quad(self.Gamma_fois_masse, Dx, D_max,args=(lam))[0]
+                return integral - p * rho_r_tot
+
+            # Résolution de Dx
+            Dx = brentq(func, D_min, D_max)
+            D_values.append(Dx)
+
+            mass_in_time.append(p*rho_r_tot*h_tot/number_stitches)
+
+        D_values = np.array(D_values)
+        print("D_values:",D_values)
+
+        # Vitesse et temps
+        v = self.c * D_values**self.d
+        t_values = h_tot / v
+        
+
+        
+
+        print(np.array(mass_in_time), np.array(t_values))
+
+        return np.array(mass_in_time), np.array(t_values)
+
 
 class Selection:
 
@@ -280,23 +407,28 @@ class Selection:
         return Dmin, Dmax
     
     def Classe_D_N(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma, Dmin+list_interv[i]*Intervalle,  Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
-    def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, rho_r, lam):
+    def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
+        
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
             P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
-            rho_r_i=rho_r*P_i
+            rho_r_i=N*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
