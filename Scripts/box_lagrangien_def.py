@@ -141,6 +141,8 @@ class model_bl_def:
 
             self.condi_init.continuous_source(list_N=profil_concentration_t,list_rho_r=profil_rho_r_t,M=2)
 
+            self.condi_config.continuous_source(list_N=concentration_profil,list_rho_r=rho_r_profil,M=2)
+
 
         return profil_concentration, liste_precip, profil_rho_r
 

@@ -422,12 +422,13 @@ class Selection:
     def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
         list_interv = np.linspace(0,nb_classes,nb_classes+2)
         list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
+        
         Result=[]
         Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
             Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+list_interv[i]*Intervalle, Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
+            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
             rho_r_i=N*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result

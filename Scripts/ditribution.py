@@ -70,7 +70,8 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus = param_en_plus + [duree_sim, (b-a)]
+                    param_en_plus.append(duree_sim)
+                    param_en_plus.append(b-a)
 
                     concentration_formate = np.array(results[0])
                     mass_form = np.array(results[2])
