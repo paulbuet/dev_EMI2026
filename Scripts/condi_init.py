@@ -123,20 +123,19 @@ class InitialCond :
             # plt.show()
 
 
-            self.r_profile = np.array(relative_profile)*r
+            self.r_profile = np.array(relative_profile)*float(r)
 
             self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
 
-            
-            lam = eq.Liste_Lanbda_1_mom(self.rho_profile)
-            dmin, dmax = 10e-8, 0.01
+            lam = eq.Liste_Lanbda_1_mom(self.rho_r_profile)
+            dmin, dmax = 10e-6, 0.015
             
             N_profile = eq.contenu_to_conc(self.rho_r_profile)
             # N_profile = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
 
             levels_bin_concentrations_splittings= [selec.Classe_D_N (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
             levels_bin_contents_splittings= [selec.Classe_D_rho_r (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
-
+            
             # Vérification : Affichage des profils des bins (à décommenter)
             # x = [self.grid[i] for i in range(nb_levels)]
             # y = self.bin_concentration[0][1]*np.array(relative_profile)
@@ -154,7 +153,6 @@ class InitialCond :
             
             bins_rho_r_profiles = [[splitting[ind_bin][1] if splitting != " " else 0 for splitting in levels_bin_contents_splittings] for ind_bin in range(nb_classes)]
             data_vars3 = {f"rho_r_bin_{ind_bin+1}" : ("level",bins_rho_r_profiles[ind_bin][:]) for ind_bin in range(nb_classes)}
-
             data_vars1.update(data_vars2)
             data_vars1.update(data_vars3)
 
@@ -206,7 +204,7 @@ class InitialCond :
             if mode == "gauss" :
                 relative_profile = [gaussienne(Hmax, sigma, self.grid[i]) for i in range(nb_levels)]
 
-            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,np.array(relative_profile)*r)
+            self.rho_r_profile,self.rho = profil_rho_r().calcul(self.grid,np.array(relative_profile)*float(r))
 
             eq=Eq(esp)
 

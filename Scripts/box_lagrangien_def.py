@@ -24,9 +24,8 @@ class model_bl_def:
         condi_config = IC(nb_stitches, esp, "Bulk", mode = mode, r = r)
         self.Eq_config = Eq(esp)
 
-        # On récupère les concentrations et le profil de rho_r et de rho
+        # On récupère les concentrations et le profil de rho_r
         self.grid_0 = condi_config.data
-        rho = condi_config.rho
 
         # On récupère les valeurs de hauteurs des interfaces et on ajoute le sol
 
@@ -35,17 +34,17 @@ class model_bl_def:
 
         # On s'occupe du temps
 
-        duree_sim = 2000
+        self.duree_sim = 2000
 
 
-        self.nb_time_step = duree_sim // time_step
+        self.nb_time_step = self.duree_sim // time_step
 
         self.time_step = time_step
 
         # On calcule la liste des diamètre necessaire pour la sédimentation des mailles
         self.epaiss_maille = np.array([h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(nb_stitches)])
 
-
+        """
         dist_maille = np.array(Formatage(esp).Epaiss_to_diam(h_interfaces))
 
         for i in range(1,len(dist_maille)):
@@ -53,7 +52,7 @@ class model_bl_def:
             dist_maille[i,:i] -= dist_maille[i,i-1]/2
                        
         self.diam_dist = [self.Eq_config.calcul_diametre(dist_maille[stitch],time_step) for stitch in range(len(dist_maille))]
-
+        """
     def run(self):
 
         # On rentre nos profil de rho_r et de la concentration et on les enregistre pour les afficher
@@ -78,35 +77,41 @@ class model_bl_def:
         format_affichage_level = "-> {desc} |{bar}| {n_fmt}/{total_fmt} niveaux  | {elapsed}<{remaining} |                                                                                           "
 
         for t_time in tqdm(range(self.nb_time_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien déformable Step_By_Step : ", position = 0, colour = 'blue'):
-            chute_tot_int=0
             
-
+            # On initialise les valeurs pour le temps t+dt
+            chute_tot_int=0
+            concentration_profil_dt = np.zeros(len(self.epaiss_maille))
+            rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
+            
             # On calcule lambda
 
             Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
+            if t_time == 0:
+                self.lam_init = Lambda[-1]
+                self.conc_tot_init = concentration_profil[-1]
 
-
-
-            concentration_profil_dt = np.zeros(len(self.epaiss_maille))
-            rho_r_profil_dt = np.zeros(len(self.epaiss_maille))
-           
-            
-
+            # On itère sur les mailles 
             for stitch_dep in tqdm(np.where(concentration_profil!=0)[0],bar_format = format_affichage_level,desc = f"Calculs t = {t_time * self.time_step} / {self.nb_time_step * self.time_step} s : ", leave = False, colour = "green"):
                 
                 
                 conc_profil_int = []
                 rho_r_profil_intermed = []
+
+                # On calcule la masse d'eau de cette maille qui tombe par terre
+                chute_int = self.Eq_config.calcul_precip(self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep],self.time_step, Lambda[stitch_dep])
+                chute_tot_int+= chute_int
+
+                # On fait ensuite sédimenter cette maille sur la colonne
                 for stitch_arr in range(stitch_dep+1):
                     conc_sed_i_to_j = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "concentration", self.time_step, Lambda[stitch_dep])
                     rho_r_sed = self.Eq_config.calcul_maille_arrivee(self.h_interfaces[stitch_arr], self.h_interfaces[stitch_arr+1], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])
+                    
                     conc_profil_int.append(conc_sed_i_to_j)
                     rho_r_profil_intermed.append(rho_r_sed)
                     
                     #print("test, conc_sed_i_to_j : ", conc_sed_i_to_j)
-                chute_int = self.Eq_config.calcul_maille_arrivee(-10000, self.h_interfaces[0], self.h_interfaces[stitch_dep], self.h_interfaces[stitch_dep+1], concentration_profil[stitch_dep], "masse", self.time_step, Lambda[stitch_dep])*10000
-                chute_tot_int+= chute_int
-
+                
+                # On ajoute à cette colonne sédimentée les mailles du dessus et on ajoute cette colonne à celles déjà sédimentées
                 rho_r_profil_intermed = np.pad(rho_r_profil_intermed,(0,len(self.epaiss_maille)-stitch_dep-1))
                 conc_profil_int = np.pad(conc_profil_int, (0, len(self.epaiss_maille)-stitch_dep-1))
 
@@ -114,9 +119,6 @@ class model_bl_def:
                 rho_r_profil_dt += np.nan_to_num(rho_r_profil_intermed)
 
                 #print("test, conc_profil_int : ", conc_profil_int, len(conc_profil_int))
-                
-                chuté = concentration_profil[stitch_dep]
-
 
                 #concentration_profil_intermed =- concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc(self.diam_dist[stitch+1][:stitch+2],Lambda[stitch])) #self.Eq_config.calcul_maille_arrivee(h1, h2, h3, h4, concentration_profil[stitch], "concentration", self.time_step, Lambda[stitch])
                 #chute_conc = concentration_profil[stitch] * np.array(self.Eq_config.Calcul_integrale_conc([self.diam_dist[stitch+1][0],np.inf],Lambda[stitch]))

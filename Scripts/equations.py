@@ -281,7 +281,7 @@ class Eq :
         return q, Liste_temps_chute
     
 
-    def sedimentation_times(self, N, lam, h_tot):
+    def sedimentation_times(self, N, lam, h_tot,number_stitches):
 
         """
         Calcule le temps théorique pour lequel une fraction p de la masse
@@ -314,18 +314,16 @@ class Eq :
             Diamètres seuils associés
         """
 
-        p_values = np.linspace(0.02, 0.98, 49)
+        p_values = np.linspace(0.02, 0.99, 50)
         D_min=1e-6
-        D_max=1
+        D_max=0.015
         print("lambda : ", lam)
         # --- Loi gamma généralisée ---
         
-        # --- Densité de masse ---
-        def mass_density(D):
-            return N * self.Gamma(D, lam) * self.a * D**self.b
 
         # --- Masse totale ---
-        M_tot, _ = quad(mass_density, D_min, D_max)
+        rho_r_tot = N * quad(self.Gamma_fois_masse, D_min, D_max, args=(lam))[0]
+        print("rho_r_tot:",rho_r_tot)
 
         t_values = []
         D_values = []
@@ -336,19 +334,24 @@ class Eq :
 
             # Fonction à annuler : masse au-dessus de Dx - p*Mtot
             def func(Dx):
-                integral, _ = quad(mass_density, Dx, D_max)
-                return integral - p * M_tot
+                integral = N * quad(self.Gamma_fois_masse, Dx, D_max,args=(lam))[0]
+                return integral - p * rho_r_tot
 
             # Résolution de Dx
             Dx = brentq(func, D_min, D_max)
             D_values.append(Dx)
 
-            # Vitesse et temps
-            v = self.c * Dx**self.d
-            t = h_tot / v
-            t_values.append(t)
+            mass_in_time.append(p*rho_r_tot*h_tot/number_stitches)
 
-            mass_in_time.append(p*M_tot)
+        D_values = np.array(D_values)
+        print("D_values:",D_values)
+
+        # Vitesse et temps
+        v = self.c * D_values**self.d
+        t_values = h_tot / v
+        
+
+        
 
         print(np.array(mass_in_time), np.array(t_values))
 
@@ -404,23 +407,27 @@ class Selection:
         return Dmin, Dmax
     
     def Classe_D_N(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma, Dmin+list_interv[i]*Intervalle,  Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
             Ni=N*P_i
             Result.append([Di, Ni]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result
     
     def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
+        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/nb_classes
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
         for i in range(nb_classes):
-            Di=(1+2*i)*Intervalle/2 + Dmin
+            Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+list_interv[i]*Intervalle, Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]
             rho_r_i=N*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result

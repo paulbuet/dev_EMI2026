@@ -32,7 +32,7 @@ class model_bl_def_sf:
 
         # On s'occupe du temps
 
-        self.duree_sim = 35000
+        self.duree_sim = 2000
 
         self.nb_time_step = self.duree_sim // time_step
 
@@ -79,8 +79,8 @@ class model_bl_def_sf:
         # On calcule lambda
         Lambda = self.Eq_config.Liste_Lanbda(rho_r_profil,concentration_profil)
 
-        self.lam_init = Lambda
-        self.mass_tot_init = sum(self.grid_0["rho_r"].values*self.epaiss_maille)
+        self.lam_init = Lambda[-1]
+        self.conc_tot_init = self.grid_0["concentration"].values[-1]
 
         for t_time in tqdm(range(self.nb_time_step), bar_format = format_affichage_time, desc = f"Avancement total Box Lagrangien déformable Step_Forward : ", position = 0, colour = 'blue'):
             

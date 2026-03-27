@@ -26,11 +26,11 @@ class Model_bl():
 
         self.number_stitches = number_stitches
 
-        self.length_sim = 2000  # length of simulation in seconds
+        self.duree_sim = 2000  # length of simulation in seconds
 
         self.delta_t = time_step # length of time step in seconds
 
-        self.nb_step = self.length_sim // self.delta_t  # number of time step
+        self.nb_step = self.duree_sim // self.delta_t  # number of time step
 
         self.nb_diam = number_bin # number of type of diameter
         self.esp = esp
@@ -68,7 +68,15 @@ class Model_bl():
 
         self.vertical_boundaries = condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.diameters)
+        self.size_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
+
+
+        # On calcule les épaisseurs des mailles
+        h_interfaces = np.concatenate(([0],self.vertical_boundaries))
+        self.h_interfaces = h_interfaces
+
+        self.epaiss_maille = np.array([h_interfaces[stitche+1]-h_interfaces[stitche] for stitche in range(self.number_stitches)])
+        
 
        
         # Initialisation of variables
@@ -92,17 +100,21 @@ class Model_bl():
         # speed is calculated
 
         self.speeds = [Eq(self.esp).Vitesse(self.size_diam[n_diam]) * int(self.size_diam[n_diam] <= self.speed_max) + self.speed_max * int(self.size_diam[n_diam] > self.speed_max) for n_diam in range(self.nb_diam)]
-        
+        print(self.list_data)
+        self.lam_init = Eq(esp).Liste_Lanbda(sum(self.list_mass[0]),sum(self.list_data[0]))[-1]
+        print("lambdaz:", self.lam_init)
+        self.conc_tot_init = sum(self.list_data[0])[-1]
+        print("concen:", self.conc_tot_init)
 
    def mass(self,grid,var, diam):
-       return sum(grid[var].values)*Eq(self.esp).Masse(self.size_diam[diam-1])
+       return sum(grid[var].values*self.epaiss_maille)*Eq(self.esp).Masse((self.size_diam[diam-1]+self.size_diam[diam])/2)
 
    def advect_down(self,ds, V, dt):
         """
         Cette fonction décale les box au temps t d'une vitesse propre claculée en fonction du diamètre du bin
         """
 
-        shift = -V * dt   # On calcule le futur mouvement verticale
+        shift = -min(V,self.speed_max) * dt   # On calcule le futur mouvement verticale
 
         # On applique au centre des mailles le déplacement
         ds = ds.assign_coords(level=ds["level"] + shift)
@@ -179,6 +191,7 @@ class Model_bl():
                 new_grid = self.add_stitche(new_grid, diam)
 
                 # We put the stagerd grid on the good grid
+
                 grid_on_old = new_grid.regrid.conservative(grid_t, time_dim=None)
 
                 
@@ -199,7 +212,8 @@ class Model_bl():
                 list_mass_bin.append(grid_on_old[f"concentration_bin_{diam}"].values*Eq(self.esp).Masse(self.size_diam[diam-1]))
                 wat_flo_tot.append(self.water_on_floor)
                 
-                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),grid_on_old[f"concentration_bin_{diam}"].values)})
+                grid_dt = grid_dt.assign(**{f"concentration_bin_{diam}":(("level",),list_data_bin[-1])})
+                grid_dt = grid_dt.assign(**{f"rho_r_bin_{diam}":(("level",),list_mass_bin[-1])})
 
             self.list_mass.append(list_mass_bin)
             self.wat_flo_on_time.append(sum(wat_flo_tot))
@@ -208,7 +222,7 @@ class Model_bl():
             
         print ("---------------------------------------")
         print(" ")
-        cont_to_mm = np.array(self.wat_flo_on_time)*  (self.vertical_boundaries[1]-self.vertical_boundaries[0])
+        cont_to_mm = np.array(self.wat_flo_on_time)
 
 
             
