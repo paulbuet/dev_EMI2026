@@ -22,6 +22,55 @@ from matplotlib.colors import Normalize, LogNorm
 
 
 class Figure :
+    def sedimentation_time2(Concentration, typ, chemin, params):
+
+        Concentration = np.array(Concentration)
+        Transpose = Concentration.T
+
+        # 🔥 Création figure + grille
+        fig = plt.figure(figsize=(10, 6))
+        gs = fig.add_gridspec(2, 1, height_ratios=[4, 1])
+
+        # --- Graphe principal ---
+        ax = fig.add_subplot(gs[0])
+
+        orig_map = plt.cm.get_cmap('gist_ncar')
+        reversed_map = orig_map.reversed()
+        norm = Normalize(vmin=0, vmax=max(Concentration[0]))
+
+        im = ax.pcolormesh(Transpose, cmap=reversed_map, norm=norm)
+
+        ax.set_title(f"{typ} : évolution dans le temps", fontsize=22)
+        ax.set_xlabel("Temps", fontsize=18)
+        ax.set_ylabel("Mailles du modèle", fontsize=18)
+
+        fig.colorbar(im, ax=ax)
+
+        # --- Texte (zone dédiée) ---
+        ax_caption = fig.add_subplot(gs[1])
+        ax_caption.axis("off")
+
+        if params[0] in ('EULE', 'EULE2', 'STAT'):
+            #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
+            ax_caption.text(0.5, 0, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+        else :
+            if params[3] == "Yes" :
+                params[3]= "déformable"
+                ax_caption.text(0.5, 0, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+            else :
+                params[3] = "indéformable"
+                ax_caption.text(0.5, 0, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', wrap=True, fontsize=12)
+
+
+        # --- Sauvegarde ---
+
+        file_location = chemin / Path(typ)
+        fig.savefig(str(file_location))
+
+
+
+
+
 
     def sedimentation_time(Concentration, typ, chemin, params): #type="concentration" ou "masse"
         Concentration=np.array(Concentration)
@@ -36,17 +85,15 @@ class Figure :
         plt.ylabel("Mailles du modèle", fontsize=18)
         if params[0] in ('EULE', 'EULE2', 'STAT'):
             #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
-            plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, \n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+            plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, \n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
         else :
             if params[3] == "Yes" :
                 params[3]= "déformable"
-                plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+                plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
             else :
                 params[3] = "indéformable"
-                plt.text(0.5, -0.15, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
-
-        plt.tight_layout()
-        plt.subplots_adjust(bottom=0.1)
+                plt.text(0.5, -1.5, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', fontsize=10)
+        plt.subplots_adjust(bottom=0.2)
 
         # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
         plt.colorbar()
@@ -123,16 +170,16 @@ class Figure :
 
         if params[0] in ('EULE', 'EULE2', 'STAT'):
             #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
-            ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+            ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
         else :
             if params[3] == "Yes" :
                 params[3]= "déformable"
-                ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
             else :
                 params[3] = "indéformable"
-                ax_caption.text(0.5, -0.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', fontsize=10)
+                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom',wrap=True, fontsize=10)
 
-        plt.subplots_adjust(bottom=0.3)
+        plt.subplots_adjust(bottom=0.2)
 
         # --- Sauvegarde ---
         file_location = chemin / Path("Précipitation")
@@ -161,8 +208,8 @@ class Affichage :
     def afficher (self,Concentration,Contenu,Precip, Quantiles) :
 
         
-        Figure.sedimentation_time(Concentration,"Concentration", self.chemin, self.params)
-        Figure.sedimentation_time(Contenu, "Contenu", self.chemin, self.params)
+        Figure.sedimentation_time2(Concentration,"Concentration", self.chemin, self.params)
+        Figure.sedimentation_time2(Contenu, "Contenu", self.chemin, self.params)
         Figure.precipitation(Precip, self.chemin, self.params, Quantiles)
 
         plt.show()
