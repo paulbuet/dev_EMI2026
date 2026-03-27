@@ -36,13 +36,13 @@ class Model_bl():
 
         # --- # On configure le modèle avec les données d'entrée ---
    
-        condi_init = InitialCond(self.nb_mailles,self.esp,"bin",nb_classes = self.nb_bins,mode=type_init,r=rapp_mel)
+        self.condi_init = InitialCond(self.nb_mailles,self.esp,"bin",nb_classes = self.nb_bins,mode=type_init,r=rapp_mel)
 
         #---Récupération des variables---
    
-        self.grid0 = condi_init.data
-        self.hauteur_interf = np.concatenate(([0],condi_init.levels_boundaries))              # On ajoute le sol
-        self.taille_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
+        self.grid0 = self.condi_init.data
+        self.hauteur_interf = np.concatenate(([0],self.condi_init.levels_boundaries))              # On ajoute le sol
+        self.taille_diam = np.array(self.condi_init.diameters+[self.condi_init.diameters[-1]*2])
 
 
         # Initialisation des variables
