@@ -68,7 +68,7 @@ class Model_bl():
 
         self.vertical_boundaries = self.condi_init.levels_boundaries
 
-        self.size_diam = np.array(condi_init.diameters+[condi_init.diameters[-1]*2])
+        self.size_diam = np.array(self.condi_init.diameters+[self.condi_init.diameters[-1]*2])
 
 
         # On calcule les épaisseurs des mailles
