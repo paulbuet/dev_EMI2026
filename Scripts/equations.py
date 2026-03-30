@@ -259,14 +259,12 @@ class Eq :
         q = np.insert(q, 0, 0)
         D_q = np.insert(D_q, 0, 0)
         
-        print("ça c'est q : ", q, " et ça c'est D_q : ", D_q)
         Liste_masse=[]
         for i in range(len(q)-1):
             result, error =  integrate.quad(self.Gamma_fois_masse, D_q[i], D_q[i+1], args=lam)
             fact = - result/(D_q[i]-D_q[i+1])    
             Liste_masse.append(fact)
         Liste_masse = np.array(Liste_masse)
-        print("ça c'est la somme de ma liste de masse : ",np.sum(Liste_masse))
 
         Liste_vitesse=[]
         for i in range(len(q)-1):
@@ -317,13 +315,11 @@ class Eq :
         p_values = np.linspace(0.02, 0.99, 50)
         D_min=1e-6
         D_max=0.015
-        print("lambda : ", lam)
         # --- Loi gamma généralisée ---
         
 
         # --- Masse totale ---
         rho_r_tot = N * quad(self.Gamma_fois_masse, D_min, D_max, args=(lam))[0]
-        print("rho_r_tot:",rho_r_tot)
 
         t_values = []
         D_values = []
@@ -344,7 +340,6 @@ class Eq :
             mass_in_time.append(p*rho_r_tot*h_tot/number_stitches)
 
         D_values = np.array(D_values)
-        print("D_values:",D_values)
 
         # Vitesse et temps
         v = self.c * D_values**self.d
@@ -353,7 +348,6 @@ class Eq :
 
         
 
-        print(np.array(mass_in_time), np.array(t_values))
 
         return np.array(mass_in_time), np.array(t_values)
 
@@ -407,10 +401,10 @@ class Selection:
         return Dmin, Dmax
     
     def Classe_D_N(self, nb_classes, Dmin, Dmax, N, lam):
-        list_interv = np.linspace(0,nb_classes,nb_classes+2)
-        list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
+        list_interv_init = 2*np.linspace(0,nb_classes,nb_classes+1)
+        list_interv = [sum(list_interv_init[:i+1]) for i in range(nb_classes+1)]
         Result=[]
-        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes)
         for i in range(nb_classes):
             Di=Dmin+list_interv[i]*Intervalle
             
@@ -420,15 +414,15 @@ class Selection:
         return Result
     
     def Classe_D_rho_r(self, nb_classes, Dmin, Dmax, N, lam):
-        list_interv = np.linspace(0,nb_classes,nb_classes+2)
+        list_interv = 2*np.linspace(0,nb_classes,nb_classes+2)
         list_interv = [sum(list_interv[:i+1]) for i in range(nb_classes+1)]
         
         Result=[]
-        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes/2)
+        Intervalle=(Dmax-Dmin)/((nb_classes+1)*nb_classes)
         for i in range(nb_classes):
             Di=Dmin+list_interv[i]*Intervalle
             
-            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+i*Intervalle, Dmin+(i+1)*Intervalle, args=(lam))[0]/0.98
+            P_i=quad(self.Eq_config.Gamma_fois_masse, Dmin+list_interv[i]*Intervalle, Dmin+list_interv[i+1]*Intervalle, args=(lam))[0]/0.98
             rho_r_i=N*P_i
             Result.append([Di, rho_r_i]) #Liste de deux paramètres : diamètre moyen, quantité associé par rapport au nombre total de particule.
         return Result

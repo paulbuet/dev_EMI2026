@@ -19,6 +19,7 @@ from tqdm import tqdm
 
 # On importe ici les classes extèrieures
 from condi_init import InitialCond
+from equations import Eq
 
 
 from pyphyex import PYICE4_SEDIMENTATION, PYLIMA_SEDIMENTATION, PYINI_PHYEX
@@ -27,25 +28,28 @@ class Phyex():
     """
     Generic class to call the different sedimentation schemes of PHYEX
     """
-    def __init__(self, method, number_stitches, number_bin,
-                 delta_t, speed_max, esp, CFL,type_init):
+    def __init__(self, method, number_stitches, r,
+                 delta_t, speed_max, esp, CFL,type_init,duree_sim):
         """
         Here we initialise the non-spatial fixed parameters and allow important variables 
         to travel between functions. We also call the initialisation.
         """
         self.method = method
         self.number_stitches = number_stitches
-        self.length_sim = 5000  # length of simulation in seconds
+        self.length_sim = duree_sim
         self.delta_t = delta_t # length of time step in seconds
         self.nb_step = self.length_sim // self.delta_t  # number of time step
         #self.nb_diam = number_bin # number of type of diameter
         self.esp = esp
 
         # Geometry and initial content
-        self.condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init)
+        self.condi_init = InitialCond(self.number_stitches, esp, "bulk", nb_classes=1,mode=type_init,r=r)
         self.mode_init = type_init
         self.N_profile = np.array(self.condi_init.data["concentration"])
         self.rho_r_profile = np.array(self.condi_init.data["rho_r"])
+
+        self.lam_init = Eq(esp).Liste_Lanbda(self.rho_r_profile,self.N_profile)[-1]
+        self.conc_tot_init = self.N_profile[-1]
 
         self.vertical_boundaries = self.condi_init.levels_boundaries
         self.levels = self.condi_init.grid
