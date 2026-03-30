@@ -77,10 +77,10 @@ class Figure :
         # --- Données ---
         Precip = np.array(Precip, dtype=float)
 
-        reference = np.array(Quantiles[0], dtype=float)
+        reference = np.array(Quantiles[0], dtype=float) # Courbe du Cumul théorique (courbe verte)
         time3 = np.array(Quantiles[1], dtype=float)
 
-        # Ajout du point initial (0,0)
+        # Ajout du point initial (0,0) (pour que la courbe de reférence parte de (0,0))
         reference = np.insert(reference, 0, 0)
         time3 = np.insert(time3, 0, 0)
 
@@ -163,12 +163,12 @@ class Affichage :
         # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
 
 
-        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'):
-            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[2]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[3]}") / Path(f"espece_{param_en_plus[4]}")
+        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'): #Si le modèle c'est EULE, EULE2 ou STAT
+            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
         else :
-            if param_en_plus[3] == "No" :
+            if param_en_plus[3] == "No" : #deformable = NO
                 self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
-            else :
+            else : #deformable = Yes
                 self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
         
         os.makedirs(self.chemin, exist_ok=True)
