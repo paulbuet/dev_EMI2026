@@ -9,10 +9,6 @@ from affichage import Affichage
 from equations import Eq
 
 
-
-from phyex import Eule, Eule2, Stat
-
-
 import numpy as np
 import time
 from pathlib import Path
@@ -24,15 +20,17 @@ class distribution:
     def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, type_init, path_phyex, path_fig, diag):
         h_tot=12000
         duree_sim = 2500
+        param_en_plus = {"model":model,"path_fig":path_fig,"number_bin":number_bin,"type_advance":type_advance,"deformability":deformable,"number_stitches":number_stitches,"time_step":time_step,"esp":esp,"type_init":type_init,"duree_sim":duree_sim}
+
         path_to_phyex = Path(path_phyex) / "PHYEX"
         sys.path.append(str(path_to_phyex))
-        #from phyex import Eule, Eule2, Stat
+        from phyex import Eule, Eule2, Stat
 
         if model == "Box_Lagrangien":
             if type_advance == "Step_By_Step":                    
                 if deformable  == "No":     #  Par défaut on arrive ici.
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
+                    # param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
 
 
                     a = time.time()
@@ -46,8 +44,7 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(duree_sim)
-                    param_en_plus.append(b-a)
+                    param_en_plus["time_run"]=b-a
 
                     concentration_formate = np.array(results[0]).sum(axis=1)
                     mass_form = np.array(results[2]).sum(axis=1)
@@ -57,7 +54,7 @@ class distribution:
 
                 else:
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
+                    # param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
 
                     a = time.time()
 
@@ -72,14 +69,12 @@ class distribution:
                     print(N)
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(duree_sim)
-                    param_en_plus.append(b-a)
+                    param_en_plus["time_run"]=b-a
 
                     concentration_formate = np.array(results[0])
                     mass_form = np.array(results[2])
 
-                    param_en_plus.append(duree_sim)
-                    param_en_plus.append(b-a)
+                    param_en_plus["time_run"]=b-a
 
                     fig_config = Affichage(param_en_plus)
                     fig_config.afficher(concentration_formate,mass_form,results[1], Quantiles)
@@ -87,7 +82,7 @@ class distribution:
             else:
                 if deformable == "No":
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
+                    # param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
 
                     a = time.time()
 
@@ -100,8 +95,7 @@ class distribution:
                     N=model_config.conc_tot_init
                     Quantiles=Eq(esp).sedimentation_times(N, lam, h_tot,number_stitches)
 
-                    param_en_plus.append(duree_sim)
-                    param_en_plus.append(b-a)
+                    param_en_plus["time_run"]=b-a
 
                     concentration_formate = np.array(results[0]).sum(axis=1)
                     mass_form = np.array(results[2]).sum(axis=1)
@@ -111,7 +105,7 @@ class distribution:
 
                 else:
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
+                    # param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
 
                     a = time.time()
 
@@ -128,15 +122,14 @@ class distribution:
                     b = time.time()
                     mass_form = np.array(results[2])
                     
-                    param_en_plus.append(duree_sim)
-                    param_en_plus.append(b-a)
+                    param_en_plus["time_run"]=b-a
 
                     fig_config = Affichage(param_en_plus)
                     fig_config.afficher(concentration_formate,mass_form,results[1], Quantiles)
 
         elif model in ('EULE', 'EULE2', 'STAT'):
 
-            param_en_plus = [model,path_fig, number_stitches, time_step, esp, type_init]
+            # param_en_plus = [model,path_fig, number_stitches, time_step, esp, type_init]
 
             a = time.time()
 
@@ -155,8 +148,7 @@ class distribution:
             concentration_formate = np.array(results[2])
             mass_form = np.array(results[1])
 
-            param_en_plus.append(duree_sim)
-            param_en_plus.append(b-a)
+            param_en_plus["time_run"]=b-a
                             
             fig_config = Affichage(param_en_plus)
             fig_config.afficher(concentration_formate,mass_form,results[0], Quantiles)

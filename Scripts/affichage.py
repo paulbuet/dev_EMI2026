@@ -50,16 +50,16 @@ class Figure :
         ax_caption = fig.add_subplot(gs[1])
         ax_caption.axis("off")
 
-        if params[0] in ('EULE', 'EULE2', 'STAT'):
+        if params["model"] in ('EULE', 'EULE2', 'STAT'):
             #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
-            ax_caption.text(0.5, 0, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+            ax_caption.text(0.5, 0, f"Précipitation au sol, model {params["model"]},\n {params["number_stitches"]} mailles, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
         else :
-            if params[3] == "Yes" :
-                params[3]= "déformable"
-                ax_caption.text(0.5, 0, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+            if params["deformability"] == "Yes" :
+                params["deformability"]= "déformable"
+                ax_caption.text(0.5, 0, f"Précipitation au sol, model {params["model"]}, {params["type_advance"]}, {params["deformability"]},\n {params["number_stitches"]} mailles, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
             else :
-                params[3] = "indéformable"
-                ax_caption.text(0.5, 0, f"Sédimentation de la {typ}, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', wrap=True, fontsize=12)
+                params["deformability"] = "indéformable"
+                ax_caption.text(0.5, 0, f"Sédimentation de la {typ}, model {params["model"]}, {params["type_advance"]}, {params["deformability"]},\n {params["number_stitches"]} mailles, nombre de bin : {params["number_bin"]}, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', wrap=True, fontsize=12)
 
 
         # --- Sauvegarde ---
@@ -89,7 +89,7 @@ class Figure :
 
         # --- Temps ---
         n = len(Precip)
-        time = np.linspace(0, params[-2], n) #params -2 c'est durée simulation
+        time = np.linspace(0, params["duree_sim"], n) #params -2 c'est durée simulation
         dt = time[1] - time[0]
         time2 = time - dt / 2 # pour centrer les barres
 
@@ -137,16 +137,16 @@ class Figure :
         ax_caption = fig.add_subplot(gs[1])
         ax_caption.axis("off")
 
-        if params[0] in ('EULE', 'EULE2', 'STAT'):
+        if params["model"] in ('EULE', 'EULE2', 'STAT'):
             #Dans ce cas : params = model,path_fig, number_stitches, time_step, esp
-            ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]},\n {params[2]} mailles, pas de temps de {params[3]} s, durée de la simulation {params[-2]},\n espece {params[4]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+            ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params["model"]},\n {params["number_stitches"]} mailles, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
         else :
-            if params[3] == "Yes" :
-                params[3]= "déformable"
-                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
+            if params["deformability"] == "Yes" :
+                params["deformability"]= "déformable"
+                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params["model"]}, {params["type_advance"]}, {params["deformability"]},\n {params["number_stitches"]} mailles, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', va='bottom', wrap=True, fontsize=10)
             else :
-                params[3] = "indéformable"
-                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params[0]}, {params[2]}, {params[3]},\n {params[4]} mailles, nombre de bin : {params[7]}, pas de temps de {params[5]} s, durée de la simulation {params[-2]},\n espece {params[6]}, temps de calculs : {params[-1]} s ", ha='center', va='bottom',wrap=True, fontsize=10)
+                params["deformability"] = "indéformable"
+                ax_caption.text(0.5, -1.5, f"Précipitation au sol, model {params["model"]}, {params["type_advance"]}, {params["deformability"]},\n {params["number_stitches"]} mailles, nombre de bin : {params["number_bin"]}, pas de temps de {params["time_step"]} s, durée de la simulation {params["duree_sim"]},\n espece {params["esp"]}, temps de calculs : {params["time_run"]} s ", ha='center', va='bottom',wrap=True, fontsize=10)
 
         plt.subplots_adjust(bottom=0.2)
 
@@ -163,16 +163,15 @@ class Affichage :
         # Param_en plus contient : model, path_fig, type_advance, deformable, number_stitches, time_step, esp, number_bin
 
 
-        if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'): #Si le modèle c'est EULE, EULE2 ou STAT
-            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
+        if param_en_plus["model"] in ('EULE', 'EULE2', 'STAT'): #Si le modèle c'est EULE, EULE2 ou STAT
+            self.chemin = "." / Path(param_en_plus["path_fig"]) / Path(param_en_plus["model"]) / Path(f"Number_stitches_{param_en_plus["number_stitches"]}") / Path(f"duree_simu_{param_en_plus["duree_sim"]}") / Path(f"time_step_{param_en_plus["time_step"]}") / Path(f"espece_{param_en_plus["esp"]}") / Path (f"type_init_{param_en_plus["type_init"]}")
         else :
-            if param_en_plus[3] == "No" : #deformable = NO
-                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
+            if param_en_plus["deformability"] == "No" : #deformable = NO
+                self.chemin = "."/Path(param_en_plus["path_fig"]) / Path(param_en_plus["model"]) / Path(param_en_plus["type_advance"])/Path(f"déformable_{param_en_plus["deformability"]}") / Path(f"Number_stitches_{param_en_plus["number_stitches"]}") / Path(f"duree_simu_{param_en_plus["duree_sim"]}") / Path(f"Number_bin_{param_en_plus["number_bin"]}") / Path(f"time_step_{param_en_plus["time_step"]}") / Path(f"espece_{param_en_plus["esp"]}") / Path (f"type_init_{param_en_plus["type_init"]}")
             else : #deformable = Yes
-                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
+                self.chemin = "."/Path(param_en_plus["path_fig"]) / Path(param_en_plus["model"]) / Path(param_en_plus["type_advance"])/Path(f"déformable_{param_en_plus["deformability"]}") / Path(f"Number_stitches_{param_en_plus["number_stitches"]}") / Path(f"duree_simu_{param_en_plus["duree_sim"]}") / Path(f"time_step_{param_en_plus["time_step"]}") / Path(f"espece_{param_en_plus["esp"]}") / Path (f"type_init_{param_en_plus["type_init"]}")
         
         os.makedirs(self.chemin, exist_ok=True)
-        print(self.chemin)
         self.params=param_en_plus
     
     def afficher (self,Concentration,Contenu,Precip, Quantiles) :
