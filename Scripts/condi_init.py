@@ -130,10 +130,14 @@ class InitialCond :
             self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
 
             lam = eq.Liste_Lanbda_1_mom(self.rho_r_profile)
-            dmin, dmax = 10e-6, 0.015
+            dmin, dmax = 10e-6, 1
             
             N_profile = eq.contenu_to_conc(self.rho_r_profile)
             # N_profile = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
+
+            print(lam)
+
+            print(Eq(esp).Liste_Lanbda(self.rho_r_profile,N_profile))
 
             levels_bin_concentrations_splittings= [selec.Classe_D_N (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
             levels_bin_contents_splittings= [selec.Classe_D_rho_r (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
