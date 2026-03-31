@@ -32,7 +32,7 @@ class distribution:
             if type_advance == "Step_By_Step":                    
                 if deformable  == "No":     #  Par défaut on arrive ici.
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin]
+                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
 
 
                     a = time.time()
@@ -57,7 +57,7 @@ class distribution:
 
                 else:
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp]
+                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
 
                     a = time.time()
 
@@ -87,7 +87,7 @@ class distribution:
             else:
                 if deformable == "No":
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin]
+                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, number_bin, type_init]
 
                     a = time.time()
 
@@ -111,7 +111,7 @@ class distribution:
 
                 else:
 
-                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp]
+                    param_en_plus = [model,path_fig,type_advance,deformable,number_stitches, time_step, esp, type_init]
 
                     a = time.time()
 
@@ -136,7 +136,7 @@ class distribution:
 
         elif model in ('EULE', 'EULE2', 'STAT'):
 
-            param_en_plus = [model,path_fig, number_stitches, time_step, esp]
+            param_en_plus = [model,path_fig, number_stitches, time_step, esp, type_init]
 
             a = time.time()
 

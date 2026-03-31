@@ -164,14 +164,15 @@ class Affichage :
 
 
         if param_en_plus[0] in ('EULE', 'EULE2', 'STAT'): #Si le modèle c'est EULE, EULE2 ou STAT
-            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+            self.chemin = "." / Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
         else :
             if param_en_plus[3] == "No" : #deformable = NO
-                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"Number_bin_{param_en_plus[7]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
             else : #deformable = Yes
-                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}")
+                self.chemin = "."/Path(param_en_plus[1]) / Path(param_en_plus[0]) / Path(param_en_plus[2])/Path(f"déformable_{param_en_plus[3]}") / Path(f"Number_stitches_{param_en_plus[4]}") / Path(f"duree_simu_{param_en_plus[-2]}") / Path(f"time_step_{param_en_plus[5]}") / Path(f"espece_{param_en_plus[6]}") / Path (f"type_init_{param_en_plus[-1]}")
         
         os.makedirs(self.chemin, exist_ok=True)
+        print(self.chemin)
         self.params=param_en_plus
     
     def afficher (self,Concentration,Contenu,Precip, Quantiles) :
