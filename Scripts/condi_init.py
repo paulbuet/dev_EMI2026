@@ -130,14 +130,12 @@ class InitialCond :
             self.rho_r_profile,self.rho_profile = profil_rho_r().calcul(self.grid,self.r_profile)
 
             lam = eq.Liste_Lanbda_1_mom(self.rho_r_profile)
-            dmin, dmax = 10e-6, 1
+            dmin, dmax = 10e-6, 0.1
             
             N_profile = eq.contenu_to_conc(self.rho_r_profile)
             # N_profile = self.rho * r * (lam ** eq.b)/ (eq.a * eq.G(eq.b))
 
-            print(lam)
-
-            print(Eq(esp).Liste_Lanbda(self.rho_r_profile,N_profile))
+            N_profile[np.isinf(N_profile)] = 0
 
             levels_bin_concentrations_splittings= [selec.Classe_D_N (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
             levels_bin_contents_splittings= [selec.Classe_D_rho_r (nb_classes, dmin, dmax, N_profile[ind_level], lam[ind_level]) if N_profile[ind_level] != 0 else " " for ind_level in range(nb_grid)] # List of lists containing the nb_grid classifications
@@ -161,6 +159,8 @@ class InitialCond :
             data_vars3 = {f"rho_r_bin_{ind_bin+1}" : ("level",bins_rho_r_profiles[ind_bin][:]) for ind_bin in range(nb_classes)}
             data_vars1.update(data_vars2)
             data_vars1.update(data_vars3)
+            print(self.rho_r_profile)
+            print(N_profile)
 
             # print (f" splitting {levels_bin_concentrations_splittings}")
             # print (f" relative profile {relative_profile}")
@@ -219,6 +219,8 @@ class InitialCond :
 
             N_profile = eq.contenu_to_conc(self.rho_r_profile)
 
+            N_profile[np.isinf(N_profile)] = 0
+
             bulk_profile = np.array(N_profile)   # computinng of the n bin profiles
             data_vars1 = {"concentration" : ("level", bulk_profile), "rho_r": ("level",self.rho_r_profile)}
 
@@ -227,6 +229,7 @@ class InitialCond :
                 self.source_rho_r = self.rho_r_profile[-1]
 
             self.data = xr.Dataset(data_vars= data_vars1, coords = {"level" : self.grid})
+
     
     def continuous_source (self, list_N = [], list_rho_r = [], M = 1, nb_diam = None) :
                 
