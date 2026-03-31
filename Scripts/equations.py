@@ -314,7 +314,7 @@ class Eq :
 
         p_values = np.linspace(0.02, 0.99, 50)
         D_min=1e-6
-        D_max=0.015
+        D_max=1
         # --- Loi gamma généralisée ---
         
 
