@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 class distribution:
     def __init__(self,model,type_advance,number_stitches,deformable,number_bin,mixing_ratio,time_step,speed_max,esp,CFL, type_init, path_phyex, path_fig, diag):
         h_tot=12000
-        duree_sim = 2500
+        duree_sim = 20000
         param_en_plus = {"model":model,"path_fig":path_fig,"number_bin":number_bin,"type_advance":type_advance,"deformability":deformable,"number_stitches":number_stitches,"time_step":time_step,"esp":esp,"type_init":type_init,"duree_sim":duree_sim}
 
         path_to_phyex = Path(path_phyex) / "PHYEX"
